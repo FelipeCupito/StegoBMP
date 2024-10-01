@@ -17,43 +17,15 @@ const char* steg_algorithm_to_string(StegAlgorithm alg);
 const char* encryption_algorithm_to_string(EncryptionAlgorithm alg);
 const char* encryption_mode_to_string(EncryptionMode mode);
 
-void print_usage(const char *program_name) {
-    printf("Usage: %s [OPTIONS]\n", program_name);
-    printf("\nEmbebido de la información:\n");
-    printf("  -embed                  Ocultar información en un archivo BMP.\n");
-    printf("  -in <file>              Archivo que se va a ocultar.\n");
-    printf("  -p <bitmapfile>         Archivo BMP portador.\n");
-    printf("  -out <bitmapfile>       Archivo BMP de salida.\n");
-    printf("  -steg <LSB1|LSB4|LSBI>  Algoritmo de esteganografía.\n");
-    printf("\nRecupero de la información:\n");
-    printf("  -extract                Extraer información de un archivo BMP.\n");
-    printf("  -p <bitmapfile>         Archivo BMP portador.\n");
-    printf("  -out <file>             Archivo de salida obtenido.\n");
-    printf("  -steg <LSB1|LSB4|LSBI>  Algoritmo de esteganografía.\n");
-    printf("\nOpcionales:\n");
-    printf("  -a <aes128 | aes192 | aes256 | 3des>      Algoritmo de encriptación. Default: %s\n", encryption_algorithm_to_string(DEFAULT_ENCRYPTION_ALGO));
-    printf("  -m <ecb | cfb | ofb | cbc>                Modo de encriptación. Default: %s\n", encryption_mode_to_string(DEFAULT_ENCRYPTION_MODE));
-    printf("  -pass <password>                          Contraseña para la encriptación.\n");
-    printf("  -loglevel <DEBUG | INFO | ERROR | FATAL>  Nivel de log. Default: %s\n", log_level_to_string(DEFAULT_LOG_LEVEL));
-    printf("\n");
-}
-
-//void print_usage(const char *program_name) {
-//    printf("Usage: %s [OPTIONS]\n", program_name);
-//    printf("\nRequired arguments:\n");
-//    printf("  -embed                  Embed a file into a BMP image.\n");
-//    printf("  -extract                Extract a file from a BMP image.\n");
-//    printf("  -in <file>              Input file to embed (for -embed).\n");
-//    printf("  -out <file>             Output file.\n");
-//    printf("  -p <bitmapfile>         BMP file (carrier or output, depending on mode).\n");
-//    printf("  -steg <LSB1|LSB4|LSBI>  Steganography algorithm to use.\n");
-//    printf("\nOptional arguments:\n");
-//    printf("  -a <algo>               Encryption algorithm (aes128, aes192, aes256, 3des). Default: %s\n", encryption_algorithm_to_string(DEFAULT_ENCRYPTION_ALGO));
-//    printf("  -m <mode>               Encryption mode (ecb, cfb, ofb, cbc). Default: %s\n", encryption_mode_to_string(DEFAULT_ENCRYPTION_MODE));
-//    printf("  -pass <password>        Password for encryption/decryption.\n");
-//    printf("  -loglevel <level>       Log level (DEBUG, INFO, ERROR, FATAL). Default: %s\n", log_level_to_string(DEFAULT_LOG_LEVEL));
-//    printf("\n");
-//}
+/**
+ * @brief Print the usage message for the program.
+ *
+ * This function prints detailed usage instructions on how to use the program, including required
+ * and optional command-line arguments for both embedding and extracting information using steganography.
+ *
+ * @param program_name The name of the program (usually argv[0]).
+ */
+void print_usage(const char *program_name);
 
 int parse_arguments(int argc, char *argv[], ProgramOptions *options) {
     // Inicializar opciones con valores por defecto
@@ -62,8 +34,8 @@ int parse_arguments(int argc, char *argv[], ProgramOptions *options) {
     options->input_bmp_file = NULL;
     options->output_bmp_file = NULL;
     options->steg_algorithm = STEG_NONE;
-    options->encryption_algo = DEFAULT_ENCRYPTION_ALGO;
-    options->encryption_mode = DEFAULT_ENCRYPTION_MODE;
+    options->encryption_algo = ENC_NONE;
+    options->encryption_mode = ENC_MODE_NONE;
     options->password[0] = '\0';
     options->log_level = DEFAULT_LOG_LEVEL;
 
@@ -120,6 +92,10 @@ int parse_arguments(int argc, char *argv[], ProgramOptions *options) {
                 LOG(DEBUG, "Encryption mode: %s", optarg)
                 break;
             case 'P':
+                if(strlen(optarg) > MAX_PASSWORD_LENGTH) {
+                    LOG(WARNING, "Password is too long. Used only the first %d characters.", MAX_PASSWORD_LENGTH - 1)
+                    return 0;
+                }
                 strncpy(options->password, optarg, MAX_PASSWORD_LENGTH - 1);
                 options->password[MAX_PASSWORD_LENGTH - 1] = '\0';
                 LOG(DEBUG, "Password: %s", options->password)
@@ -133,46 +109,69 @@ int parse_arguments(int argc, char *argv[], ProgramOptions *options) {
                 return 0;
         }
     }
+    LOG(DEBUG, "Parsed command line arguments successfully.")
 
-    // Validaciones
-    if (options->mode == MODE_NONE) {
-        LOG(ERROR, "You must specify -embed or -extract.");
+    // Validated required arguments
+    if( options->mode == MODE_NONE ||
+        options->input_bmp_file == NULL ||
+        options->output_bmp_file == NULL ||
+        options->steg_algorithm == STEG_NONE)
+    {
+        LOG(ERROR, "Missing required arguments.")
         print_usage(argv[0]);
         return 0;
     }
 
-    if (options->input_bmp_file == NULL) {
-        LOG(ERROR, "You must specify a BMP file with -p.");
-        print_usage(argv[0]);
-        return 0;
-    }
-
-    if (options->output_bmp_file == NULL) {
-        LOG(ERROR, "You must specify an output file with -out.");
-        print_usage(argv[0]);
-        return 0;
-    }
-
-    if (options->steg_algorithm == STEG_NONE) {
-        LOG(ERROR, "You must specify a steganography algorithm with -steg.");
-        print_usage(argv[0]);
-        return 0;
-    }
-
+    // Check -in argument with embed mode
     if (options->mode == MODE_EMBED && options->input_file == NULL) {
         LOG(ERROR, "You must specify an input file with -in when embedding.");
         print_usage(argv[0]);
         return 0;
     }
 
-
-    // Si se especificó password, se debe tener algoritmo y modo
-    if (strlen(options->password) > 0 && (options->encryption_algo == ENC_NONE || options->encryption_mode == ENC_MODE_NONE)) {
-        LOG(ERROR, "Encryption algorithm and mode must be specified when using a password.");
-        return 0;
+    // If not password passed, set algorithm and mode to none
+    if(strlen(options->password) == 0) {
+        options->encryption_algo = ENC_NONE;
+        options->encryption_mode = ENC_MODE_NONE;
+        LOG(WARNING, "No password passed. Setting encryption algorithm and mode to none.")
+    }else{
+        // Set default values for encryption algorithm and mode, and log level
+        if (options->encryption_algo == ENC_NONE) {
+            options->encryption_algo = DEFAULT_ENCRYPTION_ALGO;
+            LOG(WARNING, "No encryption algorithm specified. Using default: %s", encryption_algorithm_to_string(DEFAULT_ENCRYPTION_ALGO));
+        }
+        if(options->encryption_mode == ENC_MODE_NONE) {
+            options->encryption_mode = DEFAULT_ENCRYPTION_MODE;
+            LOG(WARNING, "No encryption mode specified. Using default: %s", encryption_mode_to_string(DEFAULT_ENCRYPTION_MODE));
+        }
     }
 
+
+
+
+    LOG(DEBUG, "All validations passed.")
     return 1;
+}
+
+void print_usage(const char *program_name) {
+    printf("Usage: %s [OPTIONS]\n", program_name);
+    printf("\nEmbebido de la información:\n");
+    printf("  -embed                  Ocultar información en un archivo BMP.\n");
+    printf("  -in <file>              Archivo que se va a ocultar.\n");
+    printf("  -p <bitmapfile>         Archivo BMP portador.\n");
+    printf("  -out <bitmapfile>       Archivo BMP de salida.\n");
+    printf("  -steg <LSB1|LSB4|LSBI>  Algoritmo de esteganografía.\n");
+    printf("\nRecupero de la información:\n");
+    printf("  -extract                Extraer información de un archivo BMP.\n");
+    printf("  -p <bitmapfile>         Archivo BMP portador.\n");
+    printf("  -out <file>             Archivo de salida obtenido.\n");
+    printf("  -steg <LSB1|LSB4|LSBI>  Algoritmo de esteganografía.\n");
+    printf("\nOpcionales:\n");
+    printf("  -a <aes128 | aes192 | aes256 | 3des>      Algoritmo de encriptación. Default: %s\n", encryption_algorithm_to_string(DEFAULT_ENCRYPTION_ALGO));
+    printf("  -m <ecb | cfb | ofb | cbc>                Modo de encriptación. Default: %s\n", encryption_mode_to_string(DEFAULT_ENCRYPTION_MODE));
+    printf("  -pass <password>                          Contraseña para la encriptación.\n");
+    printf("  -loglevel <DEBUG | INFO | ERROR | FATAL>  Nivel de log. Default: %s\n", log_level_to_string(DEFAULT_LOG_LEVEL));
+    printf("\n");
 }
 
 OperationMode parse_operation_mode(const char *str) {
