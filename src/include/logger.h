@@ -12,11 +12,12 @@
  * @brief Niveles de log para la salida de mensajes de depuración e información.
  */
 typedef enum {
-    NONE = -1,  /**< Nivel para desactivar los mensajes de log. */
     DEBUG = 0,  /**< Nivel para mensajes de depuración detallados. */
     INFO,       /**< Nivel para mensajes informativos. */
+    WARNING,    /**< Nivel para mensajes de advertencia. */
     ERROR,      /**< Nivel para mensajes de errores que no terminan el programa. */
-    FATAL       /**< Nivel para errores críticos que terminan el programa. */
+    FATAL,      /**< Nivel para errores críticos que terminan el programa. */
+    NONE        /**< Nivel para desactivar los mensajes de log. */
 } LogLevel;
 
 /**
@@ -64,6 +65,10 @@ LogLevel parse_log_level(const char *level);
             fprintf(stderr, "%s: %s:%d: ", log_level_to_string(level), __FILE__, __LINE__); \
             fprintf(stderr, fmt, ##__VA_ARGS__); \
             fprintf(stderr, "\n");\
+         } else if (level == WARNING) {\
+            fprintf(stdout, "%s: ", log_level_to_string(level)); \
+            fprintf(stdout, fmt, ##__VA_ARGS__); \
+            fprintf(stdout, "\n");\
         } else {\
             fprintf(stdout, "%s: ", log_level_to_string(level)); \
             fprintf(stdout, fmt, ##__VA_ARGS__); \
