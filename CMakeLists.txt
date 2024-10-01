@@ -11,26 +11,29 @@ include_directories(src/include)
 file(GLOB SRC_FILES "src/*.c")
 
 # Crear el ejecutable principal StegoBMP
-add_executable(StegoBMP
+add_executable(stegobmp
         ${SRC_FILES}
 )
 
 # ------ Configuración de Tests ------
-# Habilitar la funcionalidad de pruebas de CMake
 enable_testing()
 
-# Crear un ejecutable para las pruebas, asegurando que incluya file_handler.c
+# file handler tests
 add_executable(test_file_handler
         tests/test_file_handler.c
         src/logger.c
         src/file_handler.c
 )
-
-# Definir TESTING solo para los tests
 target_compile_definitions(test_file_handler PRIVATE TESTING)
-
-# Agregar las pruebas al sistema de tests
 add_test(NAME FileHandlerTest COMMAND test_file_handler)
 
+# argumnets tests
+add_executable(test_arguments
+        tests/test_arguments.c
+        src/logger.c
+        src/arguments.c
+)
+target_compile_definitions(test_arguments PRIVATE TESTING)
+add_test(NAME ArgumentsTest COMMAND test_arguments)
 
 
