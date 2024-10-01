@@ -6,11 +6,13 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 /**
  * @brief Niveles de log para la salida de mensajes de depuración e información.
  */
 typedef enum {
+    NONE = -1,  /**< Nivel para desactivar los mensajes de log. */
     DEBUG = 0,  /**< Nivel para mensajes de depuración detallados. */
     INFO,       /**< Nivel para mensajes informativos. */
     ERROR,      /**< Nivel para mensajes de errores que no terminan el programa. */
@@ -35,7 +37,16 @@ void set_log_level(LogLevel new_level);
  * @param level Nivel de log.
  * @return Cadena con la descripción textual del nivel de log.
  */
-const char *get_log_level_description(LogLevel level);
+const char* log_level_to_string(LogLevel level);
+
+/**
+ * @brief Parcea una cadena a un nivel de log.
+ *
+ * @param level Cadena con el nivel de log.
+ * @return LogLevel de log correspondiente a la cadena, o `NONE` si no se reconoce.
+ */
+LogLevel parse_log_level(const char *level);
+
 
 /**
  * @brief Macro para registrar un mensaje de log.
@@ -50,11 +61,11 @@ const char *get_log_level_description(LogLevel level);
 #define LOG(level, fmt, ...)   {\
     if(level >= log_level) {\
         if (level == ERROR || level == FATAL) {\
-            fprintf(stderr, "%s: %s:%d: ", get_log_level_description(level), __FILE__, __LINE__); \
+            fprintf(stderr, "%s: %s:%d: ", log_level_to_string(level), __FILE__, __LINE__); \
             fprintf(stderr, fmt, ##__VA_ARGS__); \
             fprintf(stderr, "\n");\
         } else {\
-            fprintf(stdout, "%s: ", get_log_level_description(level)); \
+            fprintf(stdout, "%s: ", log_level_to_string(level)); \
             fprintf(stdout, fmt, ##__VA_ARGS__); \
             fprintf(stdout, "\n");\
         }\
