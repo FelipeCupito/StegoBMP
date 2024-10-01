@@ -114,6 +114,8 @@ void test_print_file_package() {
 }
 
 int main() {
+    set_log_level(NONE);
+
     // Ejecutar las pruebas
     test_get_file_size();
     test_get_file_extension();
