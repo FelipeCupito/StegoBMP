@@ -36,6 +36,16 @@ void free_file_package(FilePackage *package);
  */
 void print_file_package(FilePackage *package);
 
+/**
+ * Create a file from the given FilePackage.
+ * The filename will be constructed by concatenating the provided filename and the extension in the FilePackage.
+ *
+ * @param filename The name of the file without the extension.
+ * @param package Pointer to the FilePackage that contains the data and extension.
+ * @return 0 if the file was created successfully, -1 on error.
+ */
+int create_file_from_package(const char *filename, FilePackage *package);
+
 #ifdef TESTING
 /**
  * Only used for testing purposes.

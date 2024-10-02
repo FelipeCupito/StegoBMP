@@ -116,6 +116,58 @@ FilePackage *create_file_package(const char *file_path){
     return package;
 }
 
+
+int create_file_from_package(const char *filename, FilePackage *package) {
+    //TODO: falta testear
+    if(filename == NULL){
+        LOG(ERROR, "Invalid filename.")
+        return -1;
+    }
+
+    if ( package == NULL || package->extension == NULL || package->data == NULL) {
+        LOG(ERROR, "Invalid FilePackage pointer or data.");
+        return -1;
+    }
+
+    // Concatenate filename and extension to form the full filename
+    size_t full_filename_length = strlen(filename) + strlen(package->extension) + 1; // +1 for null terminator
+    char *full_filename = (char *)malloc(full_filename_length);
+    if (full_filename == NULL) {
+        LOG(ERROR, "Could not allocate memory for the full filename.");
+        return -1;
+    }
+
+    snprintf(full_filename, full_filename_length, "%s%s", filename, package->extension);
+
+    // Open the file for writing
+    FILE *file = fopen(full_filename, "wb");
+    if (file == NULL) {
+        LOG(ERROR, "Could not open file %s for writing.", full_filename);
+        free(full_filename);
+        return -1;
+    }
+
+    // Write the file data from the FilePackage
+    size_t written_bytes = fwrite(package->data, 1, package->size, file);
+    if (written_bytes != package->size) {
+        LOG(ERROR, "Error writing data to file %s. Expected %lu bytes, wrote %lu bytes.",
+                    full_filename, package->size, written_bytes);
+        fclose(file);
+        free(full_filename);
+        return -1;
+    }
+
+    // Successfully written the file
+    LOG(INFO, "Successfully created file %s with size %lu bytes.", full_filename, package->size);
+
+    // Clean up
+    fclose(file);
+    free(full_filename);
+
+    return 0;
+}
+
+
 /**
  * Free the memory associated with a FilePackage.
  * @param package Pointer to the FilePackage
