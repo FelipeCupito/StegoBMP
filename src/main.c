@@ -5,34 +5,44 @@
 #include "./include/file_handler.h"
 #include "./include/arguments.h"
 
-
 int main(int argc, char *argv[]) {
-    LOG(INFO, "StegoBMP started.")
-    // Procesa los argumentos
-    ProgramOptions options;
-    if (!parse_arguments(argc, argv, &options)) {
+    // Parse command-line arguments
+    ProgramOptions arguments;
+    if (!parse_arguments(argc, argv, &arguments)) {
         LOG(ERROR, "Error parsing arguments.");
         return 1;
     }
-    LOG(INFO, "Arguments parsed successfully.")
 
-    // Establecer el nivel de log de acuerdo a los argumentos
-    set_log_level(options.log_level);
-    LOG(INFO, "Log level set to %s.", log_level_to_string(log_level));
+    // Log the parsed arguments
+    log_program_options(&arguments);
 
-    if (options.mode == MODE_EMBED) {
+    // Check the operation mode
+    if (arguments.mode == MODE_EMBED) {
         LOG(INFO, "Embedding mode selected.");
-        FilePackage *package = create_file_package(options.input_file);
-        LOG(INFO, "File loaded successfully.")
 
-        //TODO: borra esta línea
-        print_file_package(package);
+        // Load the input file
+        FilePackage *package = create_file_package(arguments.input_file);
+        LOG(INFO, "File loaded successfully.")
 
         //TODO: implementar la inserción
 
-    } else if (options.mode == MODE_EXTRACT) {
+
+
+
+
+    } else if (arguments.mode == MODE_EXTRACT) {
+
         //TODO: implementar la extracción
+
+
+        FilePackage *package;
+        if(!create_file_from_package(arguments.output_file, package)){
+            LOG(ERROR, "Error creating the output file.");
+            return 1;
+        }
+        LOG(INFO, "Output file created successfully.")
     }
+
 
     LOG(INFO, "Operation completed successfully.");
     return 0;
