@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 #include "../src/include/arguments.h"
 
 
@@ -16,6 +17,7 @@ void test_parse_embed_arguments() {
     int argc = sizeof(argv) / sizeof(char*);
 
     ProgramOptions options;
+    optind = 1;  // Reiniciar optind antes de cada test
     int result = parse_arguments(argc, argv, &options);
 
     // Validate the parsing
@@ -23,11 +25,13 @@ void test_parse_embed_arguments() {
     assert(options.mode == MODE_EMBED);
     assert(strcmp(options.input_file, "input.txt") == 0);
     assert(strcmp(options.input_bmp_file, "carrier.bmp") == 0);
-    assert(strcmp(options.output_bmp_file, "output.bmp") == 0);
+    assert(strcmp(options.output_file, "output.bmp") == 0);
     assert(options.steg_algorithm == STEG_LSB1);
     assert(options.encryption_algo == ENC_NONE);
     assert(options.encryption_mode == ENC_MODE_NONE);
     assert(strcmp(options.password, "") == 0);
+
+
     print_test_result("test_parse_embed_arguments");
 }
 
@@ -39,6 +43,7 @@ void test_embed_in_is_missing() {
     int argc = sizeof(argv) / sizeof(char*);
 
     ProgramOptions options;
+    optind = 1;  // Reiniciar optind antes de cada test
     int result = parse_arguments(argc, argv, &options);
     assert(result == 0);
     print_test_result("test_embed_in_is_missing");
@@ -52,6 +57,7 @@ void test_embed_p_is_missing() {
     int argc = sizeof(argv) / sizeof(char*);
 
     ProgramOptions options;
+    optind = 1;  // Reiniciar optind antes de cada test
     int result = parse_arguments(argc, argv, &options);
     assert(result == 0);
     print_test_result("test_embed_p_is_missing");
@@ -65,6 +71,7 @@ void test_embed_out_is_missing() {
     int argc = sizeof(argv) / sizeof(char*);
 
     ProgramOptions options;
+    optind = 1;  // Reiniciar optind antes de cada test
     int result = parse_arguments(argc, argv, &options);
     assert(result == 0);
     print_test_result("test_embed_out_is_missing");
@@ -78,6 +85,7 @@ void test_embed_steg_is_missing() {
     int argc = sizeof(argv) / sizeof(char*);
 
     ProgramOptions options;
+    optind = 1;  // Reiniciar optind antes de cada test
     int result = parse_arguments(argc, argv, &options);
     assert(result == 0);
     print_test_result("test_embed_steg_is_missing");
@@ -93,6 +101,7 @@ void test_parse_extract_arguments_example_1() {
     int argc = sizeof(argv) / sizeof(char*);
 
     ProgramOptions options;
+    optind = 1;  // Reiniciar optind antes de cada test
     int result = parse_arguments(argc, argv, &options);
 
     // Validate the parsing
@@ -100,7 +109,7 @@ void test_parse_extract_arguments_example_1() {
     assert(options.mode == MODE_EXTRACT);
     assert(options.input_file == NULL);
     assert(strcmp(options.input_bmp_file, "imagen1.bmp") == 0);
-    assert(strcmp(options.output_bmp_file, "imagenmas1.bmp") == 0);
+    assert(strcmp(options.output_file, "imagenmas1.bmp") == 0);
     assert(options.steg_algorithm == STEG_LSBI);
     assert(options.encryption_algo == ENC_3DES);
     assert(options.encryption_mode == ENC_MODE_CBC);
@@ -118,6 +127,7 @@ void test_parse_extract_arguments_example_2() {
     int argc = sizeof(argv) / sizeof(char*);
 
     ProgramOptions options;
+    optind = 1;  // Reiniciar optind antes de cada test
     int result = parse_arguments(argc, argv, &options);
 
     // Validate the parsing
@@ -125,7 +135,7 @@ void test_parse_extract_arguments_example_2() {
     assert(options.mode == MODE_EXTRACT);
     assert(options.input_file == NULL);
     assert(strcmp(options.input_bmp_file, "imagen1.bmp") == 0);
-    assert(strcmp(options.output_bmp_file, "imagenmas1.bmp") == 0);
+    assert(strcmp(options.output_file, "imagenmas1.bmp") == 0);
     assert(options.steg_algorithm == STEG_LSBI);
     assert(options.encryption_algo == ENC_NONE);
     assert(options.encryption_mode == ENC_MODE_NONE);
@@ -144,6 +154,7 @@ void test_parse_extract_arguments_example_3() {
     int argc = sizeof(argv) / sizeof(char*);
 
     ProgramOptions options;
+    optind = 1;  // Reiniciar optind antes de cada test
     int result = parse_arguments(argc, argv, &options);
 
     // Validate the parsing
@@ -151,7 +162,7 @@ void test_parse_extract_arguments_example_3() {
     assert(options.mode == MODE_EXTRACT);
     assert(options.input_file == NULL);
     assert(strcmp(options.input_bmp_file, "imagenmas1.bmp") == 0);
-    assert(strcmp(options.output_bmp_file, "mensaje1") == 0);
+    assert(strcmp(options.output_file, "mensaje1") == 0);
     assert(options.steg_algorithm == STEG_LSBI);
     assert(options.encryption_algo == ENC_3DES);
     assert(options.encryption_mode == ENC_MODE_CBC);
@@ -168,6 +179,7 @@ void test_optional_arg_extract_not_pass(){
     int argc = sizeof(argv) / sizeof(char*);
 
     ProgramOptions options;
+    optind = 1;  // Reiniciar optind antes de cada test
     int result = parse_arguments(argc, argv, &options);
 
     // Validate the parsing
@@ -175,7 +187,7 @@ void test_optional_arg_extract_not_pass(){
     assert(options.mode == MODE_EXTRACT);
     assert(options.input_file == NULL);
     assert(strcmp(options.input_bmp_file, "imagenmas1.bmp") == 0);
-    assert(strcmp(options.output_bmp_file, "mensaje1") == 0);
+    assert(strcmp(options.output_file, "mensaje1") == 0);
     assert(options.steg_algorithm == STEG_LSBI);
     assert(options.encryption_algo == ENC_NONE);
     assert(options.encryption_mode == ENC_MODE_NONE);
@@ -192,6 +204,7 @@ void test_optional_embed_not_pass(){
     int argc = sizeof(argv) / sizeof(char*);
 
     ProgramOptions options;
+    optind = 1;  // Reiniciar optind antes de cada test
     int result = parse_arguments(argc, argv, &options);
 
     // Validate the parsing
@@ -199,7 +212,7 @@ void test_optional_embed_not_pass(){
     assert(options.mode == MODE_EMBED);
     assert(strcmp(options.input_file, "input.txt") == 0);
     assert(strcmp(options.input_bmp_file, "carrier.bmp") == 0);
-    assert(strcmp(options.output_bmp_file, "output.bmp") == 0);
+    assert(strcmp(options.output_file, "output.bmp") == 0);
     assert(options.steg_algorithm == STEG_LSB1);
     assert(options.encryption_algo == ENC_NONE);
     assert(options.encryption_mode == ENC_MODE_NONE);
@@ -216,6 +229,7 @@ void test_optional_mode() {
     int argc = sizeof(argv) / sizeof(char*);
 
     ProgramOptions options;
+    optind = 1;  // Reiniciar optind antes de cada test
     int result = parse_arguments(argc, argv, &options);
 
     // Validate the parsing
@@ -223,7 +237,7 @@ void test_optional_mode() {
     assert(options.mode == MODE_EMBED);
     assert(strcmp(options.input_file, "input.txt") == 0);
     assert(strcmp(options.input_bmp_file, "carrier.bmp") == 0);
-    assert(strcmp(options.output_bmp_file, "output.bmp") == 0);
+    assert(strcmp(options.output_file, "output.bmp") == 0);
     assert(options.steg_algorithm == STEG_LSB1);
     assert(options.encryption_algo == ENC_AES128);
     assert(options.encryption_mode == ENC_MODE_CBC);
@@ -239,6 +253,7 @@ void test_optinal_algorithm() {
     int argc = sizeof(argv) / sizeof(char*);
 
     ProgramOptions options;
+    optind = 1;  // Reiniciar optind antes de cada test
     int result = parse_arguments(argc, argv, &options);
 
     // Validate the parsing
@@ -246,7 +261,7 @@ void test_optinal_algorithm() {
     assert(options.mode == MODE_EMBED);
     assert(strcmp(options.input_file, "input.txt") == 0);
     assert(strcmp(options.input_bmp_file, "carrier.bmp") == 0);
-    assert(strcmp(options.output_bmp_file, "output.bmp") == 0);
+    assert(strcmp(options.output_file, "output.bmp") == 0);
     assert(options.steg_algorithm == STEG_LSB1);
     assert(options.encryption_algo == ENC_AES128);
     assert(options.encryption_mode == ENC_MODE_CBC);
@@ -262,6 +277,7 @@ void test_optional_only_pass(){
     int argc = sizeof(argv) / sizeof(char*);
 
     ProgramOptions options;
+    optind = 1;  // Reiniciar optind antes de cada test
     int result = parse_arguments(argc, argv, &options);
 
     // Validate the parsing
@@ -269,7 +285,7 @@ void test_optional_only_pass(){
     assert(options.mode == MODE_EMBED);
     assert(strcmp(options.input_file, "input.txt") == 0);
     assert(strcmp(options.input_bmp_file, "carrier.bmp") == 0);
-    assert(strcmp(options.output_bmp_file, "output.bmp") == 0);
+    assert(strcmp(options.output_file, "output.bmp") == 0);
     assert(options.steg_algorithm == STEG_LSB1);
     assert(options.encryption_algo == ENC_AES128);
     assert(options.encryption_mode == ENC_MODE_CBC);
