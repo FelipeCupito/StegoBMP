@@ -28,12 +28,12 @@ typedef struct {
     OperationMode mode;                     // Operation mode: either embed or extract
     const char *input_file;                 // File to be embedded (in embed mode)
     const char *input_bmp_file;             // Input BMP file (carrier in embed mode, source in extract mode)
-    const char *output_bmp_file;            // Output BMP file (for embedding) or file to save the extracted data
+    const char *output_file;            // Output BMP file (for embedding) or file to save the extracted data
     StegAlgorithm steg_algorithm;           // Steganography algorithm to use (LSB1, LSB4, LSBI)
     EncryptionAlgorithm encryption_algo;    // Encryption algorithm (aes128, aes192, aes256, 3des)
     EncryptionMode encryption_mode;         // Encryption mode (ecb, cfb, ofb, cbc)
     char password[MAX_PASSWORD_LENGTH];     // Password for encryption/decryption
-    LogLevel log_level;                     // Log level (DEBUG, INFO, ERROR, FATAL)
+    //LogLevel log_level;                     // Log level (DEBUG, INFO, ERROR, FATAL)
 } ProgramOptions;
 
 /**
@@ -49,6 +49,16 @@ typedef struct {
  * @return 1 on success, 0 if an error occurs (invalid or missing arguments).
  */
 int parse_arguments(int argc, char *argv[], ProgramOptions *options);
+
+/**
+ * @brief Log the parsed program options.
+ *
+ * This function logs all the options stored in the ProgramOptions structure,
+ * including operation mode, files, algorithms, and encryption settings.
+ *
+ * @param options The ProgramOptions structure with all parsed options.
+ */
+void log_program_options(const ProgramOptions *options);
 
 
 #ifdef TESTING

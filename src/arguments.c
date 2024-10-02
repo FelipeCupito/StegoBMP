@@ -27,22 +27,32 @@ const char* encryption_mode_to_string(EncryptionMode mode);
  */
 void print_usage(const char *program_name);
 
+
+/**
+ * @brief Parse the command line arguments to set the log level.
+ *
+ * This function parses the command line arguments to find the log level option (-loglevel) and sets the log level
+ * accordingly. If no log level is specified, the default log level is set. This function should be called before
+ * parsing the other command line arguments to can log the parsing process.
+ */
+int parse_log_level_argument(int argc, char *argv[]);
+
+
 int parse_arguments(int argc, char *argv[], ProgramOptions *options) {
-    // Inicializar opciones con valores por defecto
+    // Initialize options
     options->mode = MODE_NONE;
     options->input_file = NULL;
     options->input_bmp_file = NULL;
-    options->output_bmp_file = NULL;
+    options->output_file = NULL;
     options->steg_algorithm = STEG_NONE;
     options->encryption_algo = ENC_NONE;
     options->encryption_mode = ENC_MODE_NONE;
     options->password[0] = '\0';
-    options->log_level = DEFAULT_LOG_LEVEL;
 
-    // Estructuras para getopt
     int opt;
     int option_index = 0;
 
+    // Options definition
     static struct option long_options[] = {
             {"embed",      no_argument,       NULL,  'e' },
             {"extract",    no_argument,       NULL,  'x' },
@@ -53,10 +63,16 @@ int parse_arguments(int argc, char *argv[], ProgramOptions *options) {
             {"a",          required_argument, NULL,  'a' },
             {"m",          required_argument, NULL,  'm' },
             {"pass",       required_argument, NULL,  'P' },
-            {"loglevel",   required_argument, NULL,  'l' },
+            //{"loglevel",   required_argument, NULL,  'l' },
             {NULL,            0,                 NULL,   0  }
     };
 
+    // First parse log level argument and set log level, so we can log properly the parsing process
+    if (!parse_log_level_argument(argc, argv)){
+        return 0;
+    }
+
+    // Parse command line arguments
     while ((opt = getopt_long_only(argc, argv, "", long_options, &option_index)) != -1) {
         switch (opt) {
             case 'e':
@@ -76,8 +92,8 @@ int parse_arguments(int argc, char *argv[], ProgramOptions *options) {
                 LOG(DEBUG, "Input BMP file: %s", options->input_bmp_file)
                 break;
             case 'o':
-                options->output_bmp_file = optarg;
-                LOG(DEBUG, "Output BMP file: %s", options->output_bmp_file)
+                options->output_file = optarg;
+                LOG(DEBUG, "Output BMP file: %s", options->output_file)
                 break;
             case 's':
                 options->steg_algorithm = parse_steg_algorithm(optarg);
@@ -100,10 +116,11 @@ int parse_arguments(int argc, char *argv[], ProgramOptions *options) {
                 options->password[MAX_PASSWORD_LENGTH - 1] = '\0';
                 LOG(DEBUG, "Password: %s", options->password)
                 break;
-            case 'l':
-                options->log_level = parse_log_level(optarg);
-                LOG(DEBUG, "Log level: %s", optarg)
-                break;
+//            case 'l':
+//                options->log_level = parse_log_level(optarg);
+//                set_log_level(options->log_level);
+//                LOG(DEBUG, "Log level: %s", optarg)
+//                break;
             default:
                 print_usage(argv[0]);
                 return 0;
@@ -114,7 +131,7 @@ int parse_arguments(int argc, char *argv[], ProgramOptions *options) {
     // Validated required arguments
     if( options->mode == MODE_NONE ||
         options->input_bmp_file == NULL ||
-        options->output_bmp_file == NULL ||
+        options->output_file == NULL ||
         options->steg_algorithm == STEG_NONE)
     {
         LOG(ERROR, "Missing required arguments.")
@@ -146,10 +163,68 @@ int parse_arguments(int argc, char *argv[], ProgramOptions *options) {
         }
     }
 
-
-
-
     LOG(DEBUG, "All validations passed.")
+    return 1;
+}
+
+void log_program_options(const ProgramOptions *options) {
+    if (options == NULL) {
+        LOG(ERROR, "Invalid ProgramOptions pointer.");
+        return;
+    }
+
+    LOG(INFO, "Arguments parsed successfully.");
+    LOG(DEBUG, " Program options:\n\tOperation mode: %s", operation_mode_to_string(options->mode));
+
+    if (options->input_file != NULL) {
+        LOG(DEBUG, "\tInput file: %s", options->input_file);
+    } else {
+        LOG(DEBUG, "\tInput file: None");
+    }
+
+    if (options->input_bmp_file != NULL) {
+        LOG(DEBUG, "\tInput BMP file: %s", options->input_bmp_file);
+    } else {
+        LOG(DEBUG, "\tInput BMP file: None");
+    }
+
+    if (options->output_file != NULL) {
+        LOG(DEBUG, "\tOutput BMP file: %s", options->output_file);
+    } else {
+        LOG(DEBUG, "\tOutput BMP file: None");
+    }
+
+    LOG(DEBUG, "\tSteganography algorithm: %s", steg_algorithm_to_string(options->steg_algorithm));
+    LOG(DEBUG, "\tEncryption algorithm: %s", encryption_algorithm_to_string(options->encryption_algo));
+    LOG(DEBUG, "\tEncryption mode: %s", encryption_mode_to_string(options->encryption_mode));
+
+    if (strlen(options->password) > 0) {
+        LOG(DEBUG, "\tPassword: %s", options->password);
+    } else {
+        LOG(DEBUG, "\tPassword: None");
+    }
+}
+
+int parse_log_level_argument(int argc, char *argv[]){
+    // Parse log level
+    for (int i = 0; i < argc; i++) {
+        // Check if log level is passed
+        if (strcmp(argv[i], "-loglevel") == 0) {
+            // Parse log level
+            LogLevel logLevel = parse_log_level(argv[i + 1]);
+            if(logLevel == NONE) {
+                // Invalid log level
+                print_usage(argv[0]);
+                return 0;
+            }
+            // Set log level
+            set_log_level(logLevel);
+            break;
+        } else{
+            // Set default log level
+            set_log_level(DEFAULT_LOG_LEVEL);
+        }
+    }
     return 1;
 }
 
