@@ -1,4 +1,6 @@
 #include "./include/embed.h"
+#include ".include/embed_utils.h"
+#include ".include/cryptoUtils.h"
 
 void embed( FilePackage *bitmap, const char *input_bmp_file, const char *output_file, , StegAlgorithm steg_algorithm){
 
