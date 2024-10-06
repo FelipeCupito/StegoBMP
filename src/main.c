@@ -22,9 +22,25 @@ int main(int argc, char *argv[]) {
 
         // Load the input file
         FilePackage *package = create_file_package(arguments.input_file);
+        if (package == NULL) {
+            LOG(ERROR, "Error loading the input file.");
+            return 1;
+        }
         LOG(INFO, "File loaded successfully.")
 
-        //TODO: implementar la inserción
+        // Load the BMP file
+        BMPImage *bmp = read_bmp_file(arguments.input_bmp_file);
+        if (bmp == NULL) {
+            LOG(ERROR, "Error loading the BMP file.");
+            return 1;
+        }
+        LOG(INFO, "BMP file loaded successfully.")
+
+        //ENCode the file
+        //TODO: implementar la codificación
+
+        // Embed the file into the BMP image
+        //TODO: implementar la inserci
 
 
 
