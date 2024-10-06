@@ -56,3 +56,13 @@ cmake-build-debug/
 .idea/
 
 build/
+
+.DS_Store
+
+resources/test_images/test_output_sample3.bmp
+
+resources/test_images/test_output_sample2.bmp
+
+resources/test_images/test_output_sample1.bmp
+
+resources/test_images/output_image.bmp
