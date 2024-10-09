@@ -1,5 +1,18 @@
 #include "./include/file_handler.h"
 
+#define BMP_SIGNATURE_OFFSET 0          // Offset for BMP signature ("BM")
+#define BMP_SIGNATURE_SIZE 2            // Size of the BMP signature
+#define BMP_BITS_PER_PIXEL_OFFSET 28    // Offset for the "bits per pixel" field
+#define BMP_COMPRESSION_OFFSET 30       // Offset for the compression field
+#define BMP_WIDTH_OFFSET 18             // Offset for the image width in the header
+#define BMP_HEIGHT_OFFSET 22            // Offset for the image height in the header
+#define BMP_IMAGE_SIZE_OFFSET 34        // Offset for the size of the image data (in bytes)
+#define BMP_SIGNATURE "BM"              // Expected BMP signature for valid BMP files
+#define BMP_24_BITS 24                  // BMP should be 24 bits per pixel
+#define BMP_COMPRESSION_NONE 0          // BMP should have no compression
+#define BMP_DIB_HEADER_SIZE_OFFSET 14   // Offset for the DIB header size field
+#define BMP_DIB_HEADER_SIZE_V3 40       // DIB header size for V3 format
+
 BMPImage *read_bmp_file(const char *file_path) {
     // Check if the file path is valid
     if (file_path == NULL) {
