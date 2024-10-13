@@ -1,86 +1,87 @@
 #include "./include/embed.h"
-#include ".include/embed_utils.h"
-#include ".include/cryptoUtils.h"
 
-void embed( FilePackage *bitmap, const char *input_bmp_file, const char *output_file, , StegAlgorithm steg_algorithm){
+void embed_LSB1(BMPImage *bitmap, FilePackage *file);
+void embed_LSB4(BMPImage *bitmap, FilePackage *file);
+void embed_LSBI(BMPImage *bitmap, FilePackage *file);
+
+BMPImage embed(BMPImage *bitmap, FilePackage *message, StegAlgorithm steg_algorithm){
 
     //The possible steganography algorithms are:
     // LSB1, LSB4, LSBI
-    // The embedded file will be saved in the output_file
-    // The bitmap is the file to be embedded
-    // The input_bmp_file is the carrier file
-    // The output_file is the file where the embedded data will be saved
+    // The embedded file will be returned as a BMPImage struct
+    // The message is the file to be embedded
     // The steg_algorithm is the steganography algorithm to use
-    
-    // Check if the bitmap is NULL
-    if (bitmap == NULL) {
-        LOG(ERROR, "Invalid bitmap.")
-        return;
-    }
 
-    // Check if the input_bmp_file is NULL
-    if (input_bmp_file == NULL) {
-        LOG(ERROR, "Invalid input BMP file.")
-        return;
-    }
-
-    // Check if the output_file is NULL
-    if (output_file == NULL) {
-        LOG(ERROR, "Invalid output file.")
-        return;
-    }
-
-    // Check if the steg_algorithm is invalid
-    if (steg_algorithm == STEG_NONE) {
-        LOG(ERROR, "Invalid steganography algorithm.")
-        return;
-    }
-
-    // Load the BMP file
-    FilePackage *bmp_package = create_file_package(input_bmp_file);
-    if (bmp_package == NULL) {
-        LOG(ERROR, "Error loading BMP file.")
-        return;
-    }
-
-    // Check if the BMP file is valid
-    if (bmp_package->data == NULL || bmp_package->size == 0) {
-        LOG(ERROR, "Invalid BMP file.")
-        free_file_package(bmp_package);
-        return;
-    }
-
-    // Check if the bitmap is too small to embed the file
-    if (bitmap->size > bmp_package->size) {
-        LOG(ERROR, "Bitmap is too small to embed the file.")
-        free_file_package(bmp_package);
-        return;
-    }
-
-    // Embed the file into the bitmap
+    // Select the appropriate embedding function based on the steg_algorithm
     switch (steg_algorithm) {
-        case STEG_LSB1:
-            embed_LSB1(bitmap, bmp_package);
-            break;
-        case STEG_LSB4:
-            embed_LSB4(bitmap, bmp_package);
-            break;
-        case STEG_LSBI:
-            embed_LSBI(bitmap, bmp_package);
-            break;
-        default:
-            LOG(ERROR, "Invalid steganography algorithm.")
-            break;
+    case STEG_LSB1:
+        embed_LSB1(bitmap, message);
+        break;
+    case STEG_LSB4:
+        embed_LSB4(bitmap, message);
+        break;
+    case STEG_LSBI:
+        embed_LSBI(bitmap, message);
+        break;
+    default:
+        LOG(ERROR, "Invalid steganography algorithm.")
+        break;
     }
 
-    // Save the modified bitmap to the output file
-    if (!create_file_from_package(output_file, bitmap)) {
-        LOG(ERROR, "Error saving the output file.")
+    BMPImage embedded_image = *bitmap;
+
+    return embedded_image;
+}
+
+void embed_LSB1(BMPImage *bitmap, FilePackage *file) {
+    // Check if the file is too large to embed in the bitmap
+    if (file->size * 8 > bitmap->data_size) {
+        LOG(ERROR, "File is too large to embed in the bitmap.");
+        return;
     }
 
-    // Clean up
-    free_file_package(bmp_package);
-    LOG(INFO, "File embedded successfully.")
+    // Embed the file data into the bitmap using the LSB1 algorithm
+    for (size_t i = 0; i < file->size; i++) {
+        unsigned char byte = file->data[i];
+        for (int bit = 0; bit < 8; bit++) {
+            bitmap->data[i * 8 + bit] = (bitmap->data[i * 8 + bit] & 0xFE) | ((byte >> (7 - bit)) & 0x01);
+        }
+    }
 
-    return;
+    LOG(INFO, "File embedded using LSB1 algorithm.");
+}
+
+void embed_LSB4(BMPImage *bitmap, FilePackage *file) {
+    // Check if the file is too large to embed in the bitmap
+    if (file->size * 2 > bitmap->data_size) {
+        LOG(ERROR, "File is too large to embed in the bitmap.");
+        return;
+    }
+
+    // Embed the file data into the bitmap using the LSB4 algorithm
+    for (size_t i = 0; i < file->size; i++) {
+        unsigned char byte = file->data[i];
+        bitmap->data[i * 2] = (bitmap->data[i * 2] & 0xF0) | ((byte >> 4) & 0x0F);
+        bitmap->data[i * 2 + 1] = (bitmap->data[i * 2 + 1] & 0xF0) | (byte & 0x0F);
+    }
+
+    LOG(INFO, "File embedded using LSB4 algorithm.");
+}
+
+void embed_LSBI(BMPImage *bitmap, FilePackage *file) {
+    //` Check if the file is too large to embed in the bitmap
+    if (file->size * 8 > bitmap->data_size) {
+        LOG(ERROR, "File is too large to embed in the bitmap.");
+        return;
+    }
+
+    // Embed the file data into the bitmap using the LSBI algorithm
+    for (size_t i = 0; i < file->size; i++) {
+        unsigned char byte = file->data[i];
+        for (int bit = 0; bit < 8; bit++) {
+            bitmap->data[i * 8 + bit] = (bitmap->data[i * 8 + bit] & 0xFE) | ((byte >> (7 - bit)) & 0x01);
+        }
+    }
+
+    LOG(INFO, "File embedded using LSBI algorithm.");
 }

@@ -3,12 +3,21 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "./include/file_handler.h"
-#include "./include/arguments.h"
-#include ".include/embed.h"
-#include ".include/logger.h"
-#include ".include/types.h"
+#include "./file_handler.h"
+#include "./arguments.h"
+#include "./logger.h"
+#include "./types.h"
 
-void embed(FilePackage *bitmap, const char *input_bmp_file, const char *output_file, StegAlgorithm steg_algorithm);
+BMPImage embed( BMPImage *bitmap, FilePackage *message, StegAlgorithm steg_algorithm);
+
+#ifdef TESTING
+/**
+ * Only used for testing purposes.
+ */
+BMPImage embed( BMPImage *bitmap, FilePackage *message, StegAlgorithm steg_algorithm);
+void embed_LSB1(FilePackage *bitmap, FilePackage *file);
+void embed_LSB4(FilePackage *bitmap, FilePackage *file);
+void embed_LSBI(FilePackage *bitmap, FilePackage *file);
+#endif
 
 #endif //EMBED_H
