@@ -1,17 +1,16 @@
-#include "./include/embed.h"
+#include "./include/stego_bmp.h"
 
 void embed_LSB1(BMPImage *bitmap, FilePackage *file);
 void embed_LSB4(BMPImage *bitmap, FilePackage *file);
 void embed_LSBI(BMPImage *bitmap, FilePackage *file);
 
-BMPImage embed(BMPImage *bitmap, FilePackage *message, StegAlgorithm steg_algorithm){
-
+BMPImage* embed(BMPImage *bitmap, FilePackage *message, StegAlgorithm steg_algorithm){
     //The possible steganography algorithms are:
     // LSB1, LSB4, LSBI
     // The embedded file will be returned as a BMPImage struct
     // The message is the file to be embedded
     // The steg_algorithm is the steganography algorithm to use
-
+    //BMPImage* new_bmp = copy_bmp(bitmap);
     // Select the appropriate embedding function based on the steg_algorithm
     switch (steg_algorithm) {
     case STEG_LSB1:
@@ -28,9 +27,7 @@ BMPImage embed(BMPImage *bitmap, FilePackage *message, StegAlgorithm steg_algori
         break;
     }
 
-    BMPImage embedded_image = *bitmap;
-
-    return embedded_image;
+    return bitmap;
 }
 
 void embed_LSB1(BMPImage *bitmap, FilePackage *file) {

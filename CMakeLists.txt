@@ -36,4 +36,15 @@ add_executable(test_arguments
 target_compile_definitions(test_arguments PRIVATE TESTING)
 add_test(NAME ArgumentsTest COMMAND test_arguments)
 
+# stegobmp tests
+add_executable(test_stegobmp
+        tests/test_stegobmp.c
+        src/logger.c
+        src/stego_bmp.c
+        src/file_handler.c
+)
+target_compile_definitions(test_stegobmp PRIVATE TESTING)
+add_test(NAME StegoBMPTest COMMAND test_stegobmp)
+
+
 
