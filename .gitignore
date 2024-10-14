@@ -66,3 +66,7 @@ resources/test_images/test_output_sample2.bmp
 resources/test_images/test_output_sample1.bmp
 
 resources/test_images/output_image.bmp
+
+resources/test_images/*.txt
+
+resources/test_images/sample1_teste.bmp
