@@ -10,6 +10,8 @@ BMPImage* embed(BMPImage *bitmap, FilePackage *message, StegAlgorithm steg_algor
     // The embedded file will be returned as a BMPImage struct
     // The message is the file to be embedded
     // The steg_algorithm is the steganography algorithm to use
+
+
     //BMPImage* new_bmp = copy_bmp(bitmap);
     // Select the appropriate embedding function based on the steg_algorithm
     switch (steg_algorithm) {
