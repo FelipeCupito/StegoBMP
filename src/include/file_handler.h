@@ -64,6 +64,8 @@ int save_bmp_file(const char *output_file, BMPImage *bmp);
  */
 void free_bmp(BMPImage *bmp);
 
+
+BMPImage* copy_bmp(BMPImage *bmp);
 /**
  * Create a FilePackage by reading the file data into memory.
  * @param file_path Path to the file

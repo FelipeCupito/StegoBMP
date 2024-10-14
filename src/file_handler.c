@@ -13,6 +13,9 @@
 #define BMP_DIB_HEADER_SIZE_OFFSET 14   // Offset for the DIB header size field
 #define BMP_DIB_HEADER_SIZE_V3 40       // DIB header size for V3 format
 
+size_t get_file_size(FILE *file);
+char *get_file_extension(const char *filename);
+
 BMPImage *read_bmp_file(const char *file_path) {
     // Check if the file path is valid
     if (file_path == NULL) {
@@ -165,6 +168,44 @@ void free_bmp(BMPImage *bmp) {
     } else {
         LOG(ERROR, "Attempted to free a NULL BMPImage pointer.");
     }
+}
+/*
+ *
+ * typedef struct {
+    unsigned char header[BMP_HEADER_SIZE];   // BMP header (54 bytes for V3 format)
+    unsigned char *data;                     // Pointer to the pixel data
+    size_t data_size;                        // Size of the pixel data in bytes
+    size_t width;                            // Width of the image in pixels
+    size_t height;                           // Height of the image in pixels
+} BMPImage;
+
+ */
+BMPImage* copy_bmp(BMPImage *bmp){
+
+    // Allocate memory for the new BMPImage
+    BMPImage* new_bmp = malloc(sizeof(BMPImage));
+    if(new_bmp == NULL){
+        LOG(ERROR, "Could not allocate memory for new BMPImage.");
+        return NULL;
+    }
+
+    new_bmp->data = malloc(bmp->data_size);
+    if(new_bmp->data == NULL){
+        LOG(ERROR, "Could not allocate memory for new BMPImage data.");
+        free(new_bmp);
+        return NULL;
+    }
+    memccpy(new_bmp->header, bmp->header, BMP_HEADER_SIZE, sizeof(unsigned char));
+
+    new_bmp->data_size = bmp->data_size;
+    new_bmp->width = bmp->width;
+    new_bmp->height = bmp->height;
+
+    for (int i = 0; i < BMP_HEADER_SIZE; ++i) {
+        new_bmp->header[i] = bmp->header[i];
+    }
+
+    return new_bmp;
 }
 
 FilePackage *create_file_package(const char *file_path){
