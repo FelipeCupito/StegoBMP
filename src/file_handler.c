@@ -195,15 +195,12 @@ BMPImage* copy_bmp(BMPImage *bmp){
         free(new_bmp);
         return NULL;
     }
-    memccpy(new_bmp->header, bmp->header, BMP_HEADER_SIZE, sizeof(unsigned char));
+    memccpy(new_bmp->data, bmp->data, bmp->data_size, sizeof(unsigned char));
 
     new_bmp->data_size = bmp->data_size;
     new_bmp->width = bmp->width;
     new_bmp->height = bmp->height;
-
-    for (int i = 0; i < BMP_HEADER_SIZE; ++i) {
-        new_bmp->header[i] = bmp->header[i];
-    }
+    memccpy(new_bmp->header, bmp->header, BMP_HEADER_SIZE, sizeof(unsigned char));
 
     return new_bmp;
 }
