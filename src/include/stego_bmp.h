@@ -11,7 +11,6 @@
 BMPImage* embed( BMPImage *bitmap, FilePackage *message, StegAlgorithm steg_algorithm);
 FilePackage* extract(BMPImage* bmp_embed, StegAlgorithm steg_algorithm);
 
-
 #ifdef TESTING
 /**
  * Only used for testing purposes.

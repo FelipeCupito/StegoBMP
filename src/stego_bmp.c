@@ -75,7 +75,6 @@ void embed_LSB1(const BMPImage *bitmap, const FilePackage *file) {
     LOG(INFO, "File, size, and extension embedded using LSB1 algorithm.");
 }
 
-
 void embed_LSB4(const BMPImage *bitmap, const FilePackage *file) {
     // Check if the file is too large to embed in the bitmap
     if (file->size * 2 > bitmap->data_size) {

@@ -41,7 +41,6 @@ int main() {
     test_extract_algorithms("../resources/test_images/sample3_test.bmp", "../resources/test_images/data_test3",
                             STEG_LSBI);
 
-
     printf("test_stegobmp passed.\n");
     return 0;
 }
