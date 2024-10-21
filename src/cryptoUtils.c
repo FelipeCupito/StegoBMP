@@ -195,8 +195,12 @@ uint8_t *decryptAUX(const ENC_MESSAGE *encMsg, EncryptionAlgorithm encryption, E
 }
 
 ENC_MESSAGE *cryto(const FilePackage* filePackage, EncryptionAlgorithm encryption, EncryptionMode mode, const uint8_t *password) {
-    char *ptext = malloc(filePackage->size+strlen(filePackage->data)+strlen(filePackage->extension));
-    return encrypt(ptext,strlen(ptext),encryption,mode,password);
+    size_t total_len = filePackage->size + strlen((char *)filePackage->data) + strlen(filePackage->extension) + 20; // 20 extra for size_t conversion
+    char *ptext = malloc(total_len);
+    sprintf(ptext, "%zu%s%s", filePackage->size, filePackage->data, filePackage->extension);
+    ENC_MESSAGE *ans = encrypt(ptext,(int)strlen(ptext),encryption,mode,password);
+    free(ptext);
+    return ans;
 }
 FilePackage *decrypt(ENC_MESSAGE *encMsg,EncryptionAlgorithm encryption, EncryptionMode mode, const uint8_t *password) {
     uint8_t *text = decryptAUX(encMsg,encryption,mode,password);
