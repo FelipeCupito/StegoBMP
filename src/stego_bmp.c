@@ -1,5 +1,7 @@
 #include "./include/stego_bmp.h"
 
+#include <stdbool.h>
+
 void embed_LSB1(const BMPImage *bitmap, const FilePackage *file);
 void embed_LSB4(const BMPImage *bitmap, const FilePackage *file);
 void embed_LSBI(const BMPImage *bitmap, const FilePackage *file, const uint8_t *pattern);
@@ -255,7 +257,7 @@ FilePackage* extract_LSB4(const BMPImage *bitmap) {
     for (size_t i = 0; i < 8; i++) {
         file->size = (file->size << 4) | (bitmap->data[i] & 0x0F);
     }
-    LOG(INFO, "Extracted file size: %llu", file->size);
+    LOG(INFO, "Extracted file size: %u bytes", file->size);
 
     // Allocate memory for the file data
     file->data = malloc(file->size);
@@ -309,53 +311,143 @@ FilePackage* extract_LSB4(const BMPImage *bitmap) {
 }
 
 
-FilePackage* extract_LSBI(const BMPImage *bitmap) {
+// FilePackage* extract_LSBI(const BMPImage *bitmap) {
+//
+//     FilePackage *file = malloc(sizeof(FilePackage));
+//     if (!file) {
+//         LOG(ERROR, "Memory allocation failed for file package.");
+//         return NULL;
+//     }
+//
+//     // Extract the 4-bit change patterns
+//     uint8_t pattern = 0;
+//     for (size_t i = 0; i < 4; i++) {
+//         pattern = (pattern << 1) | (bitmap->data[i] & 0x01);
+//     }
+//     LOG(INFO, "Extracted pattern: %u", pattern);
+//
+//     // Extract the file size (next 32 bits)
+//     uint32_t file_size = 0;
+//     for (size_t i = 4; i < 36; i++) {
+//         file_size = (file_size << 1) | (bitmap->data[i] & 0x01);
+//     }
+//     file->size = file_size;
+//     file->data = malloc(file_size);
+//     if (!file->data) {
+//         LOG(ERROR, "Memory allocation failed for file data.");
+//         free(file);
+//         return NULL;
+//     }
+//     LOG(INFO, "Extracted file size: %u bytes", file_size);
+//
+//     // Extract the file data (after the size)
+//     size_t data_start = 36;
+//     for (size_t i = 0; i < file_size; i++) {
+//         unsigned char byte = 0;
+//         for (int bit = 0; bit < 8; bit++) {
+//             byte = (byte << 1) | (bitmap->data[data_start + i * 8 + bit] & 0x01);
+//         }
+//         file->data[i] = byte;
+//     }
+//     LOG(INFO, "File data extracted.");
+//
+//     // Extract the file extension (until the null terminator '\0')
+//     size_t extension_offset = data_start + file_size * 8;
+//     char extension[16] = {0};  // Assuming max 15 characters for extension
+//     for (size_t i = 0; i < 15; i++) {
+//         unsigned char ext_char = 0;
+//         for (int bit = 0; bit < 8; bit++) {
+//             ext_char = (ext_char << 1) | (bitmap->data[extension_offset + i * 8 + bit] & 0x01);
+//         }
+//         extension[i] = ext_char;
+//         if (ext_char == '\0') break;
+//     }
+//     file->extension = strdup(extension);
+//     LOG(INFO, "Extracted file extension: %s", file->extension);
+//
+//     return file;
+// }
 
+FilePackage* extract_LSBI(const BMPImage *bitmap) {
     FilePackage *file = malloc(sizeof(FilePackage));
     if (!file) {
         LOG(ERROR, "Memory allocation failed for file package.");
         return NULL;
     }
 
-    // Extract the 4-bit change patterns
-    uint8_t change_patterns = 0;
+    // Extraer el patrón de inversión (4 bits)
+    uint8_t pattern[2] = {0};  // El patrón es de 4 bits
     for (size_t i = 0; i < 4; i++) {
-        change_patterns = (change_patterns << 1) | (bitmap->data[i] & 0x01);
+        uint8_t bit_value = bitmap->data[i] & 0x01;
+        pattern[i / 2] = (pattern[i / 2] << 1) | bit_value;
     }
-    LOG(INFO, "Extracted change patterns: %u", change_patterns);
+    LOG(INFO, "Extracted pattern: %u %u", pattern[0], pattern[1]);
 
-    // Extract the file size (next 32 bits)
+    // Extraer el tamaño del archivo (32 bits), teniendo en cuenta el patrón
     uint32_t file_size = 0;
     for (size_t i = 4; i < 36; i++) {
-        file_size = (file_size << 1) | (bitmap->data[i] & 0x01);
+        uint8_t bit = bitmap->data[i] & 0x01;
+
+        // Aplicar inversión si el patrón lo indica
+        uint8_t pattern_bit_index = (i - 4) % 4;
+        if (pattern[pattern_bit_index / 2] & (1 << (1 - pattern_bit_index % 2))) {
+            bit = !bit;
+        }
+
+        file_size = (file_size << 1) | bit;
     }
     file->size = file_size;
+    LOG(INFO, "Extracted file size: %u bytes", file_size);
+
+    // Validación del tamaño
+    if (file_size > bitmap->data_size / 8) {
+        LOG(ERROR, "Extracted file size is larger than the available data.");
+        free(file);
+        return NULL;
+    }
+
+    // Asignar memoria para los datos del archivo
     file->data = malloc(file_size);
     if (!file->data) {
         LOG(ERROR, "Memory allocation failed for file data.");
         free(file);
         return NULL;
     }
-    LOG(INFO, "Extracted file size: %u bytes", file_size);
 
-    // Extract the file data (after the size)
+    // Extraer los datos del archivo (bits embebidos con LSBI)
     size_t data_start = 36;
     for (size_t i = 0; i < file_size; i++) {
         unsigned char byte = 0;
         for (int bit = 0; bit < 8; bit++) {
-            byte = (byte << 1) | (bitmap->data[data_start + i * 8 + bit] & 0x01);
+            uint8_t bit_value = bitmap->data[data_start + i * 8 + bit] & 0x01;
+
+            // Aplicar inversión si el patrón lo indica
+            uint8_t pattern_bit_index = (data_start + i * 8 + bit) % 4;
+            if (pattern[pattern_bit_index / 2] & (1 << (1 - pattern_bit_index % 2))) {
+                bit_value = !bit_value;
+            }
+
+            byte = (byte << 1) | bit_value;
         }
         file->data[i] = byte;
     }
     LOG(INFO, "File data extracted.");
 
-    // Extract the file extension (until the null terminator '\0')
+    // Extraer la extensión del archivo (máximo 15 caracteres), teniendo en cuenta el patrón
     size_t extension_offset = data_start + file_size * 8;
-    char extension[16] = {0};  // Assuming max 15 characters for extension
+    char extension[16] = {0};  // Asumiendo una extensión de máximo 15 caracteres
     for (size_t i = 0; i < 15; i++) {
         unsigned char ext_char = 0;
         for (int bit = 0; bit < 8; bit++) {
-            ext_char = (ext_char << 1) | (bitmap->data[extension_offset + i * 8 + bit] & 0x01);
+            uint8_t bit_value = bitmap->data[extension_offset + i * 8 + bit] & 0x01;
+
+            // Aplicar inversión si el patrón lo indica
+            uint8_t pattern_bit_index = (extension_offset + i * 8 + bit) % 4;
+            if (pattern[pattern_bit_index / 2] & (1 << (1 - pattern_bit_index % 2))) {
+                bit_value = !bit_value;
+            }
+
+            ext_char = (ext_char << 1) | bit_value;
         }
         extension[i] = ext_char;
         if (ext_char == '\0') break;
@@ -365,3 +457,4 @@ FilePackage* extract_LSBI(const BMPImage *bitmap) {
 
     return file;
 }
+
