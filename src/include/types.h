@@ -20,20 +20,20 @@ typedef enum {
     STEG_LSBI
 } StegAlgorithm;
 
-typedef enum {
+typedef enum ENCRYPTION{
     ENC_NONE,
-    ENC_AES128,
-    ENC_AES192,
-    ENC_AES256,
+    AES128,
+    AES192,
+    AES256,
     ENC_3DES
-} EncryptionAlgorithm;
+} ENCRYPTION;
 
-typedef enum {
+typedef enum ENC_MODE{
     ENC_MODE_NONE,
-    ENC_MODE_ECB,
-    ENC_MODE_CFB,
-    ENC_MODE_OFB,
-    ENC_MODE_CBC
-} EncryptionMode;
+    ECB,
+    CFB,
+    OFB,
+    CBC
+} ENC_MODE;
 
 #endif //STEGOBMP_TYPES_H
