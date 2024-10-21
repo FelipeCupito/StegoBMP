@@ -20,7 +20,7 @@ typedef enum {
     STEG_LSBI
 } StegAlgorithm;
 
-typedef enum {
+typedef enum EncryptionAlgorithm{
     ENC_NONE,
     ENC_AES128,
     ENC_AES192,
@@ -28,7 +28,7 @@ typedef enum {
     ENC_3DES
 } EncryptionAlgorithm;
 
-typedef enum {
+typedef enum EncryptionMode{
     ENC_MODE_NONE,
     ENC_MODE_ECB,
     ENC_MODE_CFB,

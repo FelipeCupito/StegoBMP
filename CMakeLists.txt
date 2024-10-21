@@ -1,11 +1,13 @@
 cmake_minimum_required(VERSION 3.28)
 project(StegoBMP C)
 
+
 # Establecer el estándar de C
 set(CMAKE_C_STANDARD 11)
 
 # Incluir directorios donde se encuentran los headers
 include_directories(src/include)
+include_directories("C:/Program Files/OpenSSL-Win64/include")
 
 # Incluir directorios de la librería de CUnit
 file(GLOB SRC_FILES "src/*.c")
@@ -13,8 +15,13 @@ file(GLOB SRC_FILES "src/*.c")
 # Crear el ejecutable principal StegoBMP
 add_executable(stegobmp
         ${SRC_FILES}
+        src/include/cryptoUtils.h
+        src/cryptoUtils.c
 )
-
+target_link_libraries(stegobmp PRIVATE
+        "C:/Program Files/OpenSSL-Win64/lib/libssl.lib"
+        "C:/Program Files/OpenSSL-Win64/lib/libcrypto.lib"
+)
 # ------ Configuración de Tests ------
 enable_testing()
 
