@@ -13,6 +13,8 @@
 #define BMP_DIB_HEADER_SIZE_OFFSET 14   // Offset for the DIB header size field
 #define BMP_DIB_HEADER_SIZE_V3 40       // DIB header size for V3 format
 
+#define EXTENSION_SIZE 16               // Maximum size of the file extension
+
 size_t get_file_size(FILE *file);
 char *get_file_extension(const char *filename);
 
@@ -169,17 +171,7 @@ void free_bmp(BMPImage *bmp) {
         LOG(ERROR, "Attempted to free a NULL BMPImage pointer.");
     }
 }
-/*
- *
- * typedef struct {
-    unsigned char header[BMP_HEADER_SIZE];   // BMP header (54 bytes for V3 format)
-    unsigned char *data;                     // Pointer to the pixel data
-    size_t data_size;                        // Size of the pixel data in bytes
-    size_t width;                            // Width of the image in pixels
-    size_t height;                           // Height of the image in pixels
-} BMPImage;
 
- */
 BMPImage* copy_bmp(BMPImage *bmp){
 
     // Allocate memory for the new BMPImage
@@ -205,7 +197,7 @@ BMPImage* copy_bmp(BMPImage *bmp){
     return new_bmp;
 }
 
-FilePackage *new_file_package(const char *file_path){
+FilePackage *new_file_package(const char *filepath){
     if (filepath == NULL) {
         LOG(ERROR, "Invalid file path.")
         return NULL;
@@ -269,6 +261,51 @@ FilePackage *new_file_package(const char *file_path){
 
     LOG(INFO, "File package created successfully: size = %lu, extension = %s", file_size, extension)
     return package;
+}
+
+FilePackage *new_file_package_from_data(const uint8_t *data){
+    if(data == NULL){
+        LOG(ERROR, "Invalid data pointer.")
+        return NULL;
+    }
+
+    // Allocate memory for the BMPImage structure
+    FilePackage *file = (FilePackage *)malloc(sizeof(FilePackage));
+    if (file == NULL) {
+        LOG(ERROR, "Could not allocate memory for BMPImage.");
+        return NULL;
+    }
+
+    // Extract the size of the data
+    file->size = *(int *)&data[0];
+    if (file->size <= 0) {
+        LOG(ERROR, "Invalid BMP data size: %lu bytes.", file->size);
+        free(file);
+        return NULL;
+    }
+
+    // Allocate memory for the pixel data and copy the data
+    file->data = (unsigned char *)malloc(file->size);
+    if (file->data == NULL) {
+        LOG(ERROR, "Could not allocate memory for BMP data.");
+        free(file);
+        return NULL;
+    }
+    memccpy(file->data, data + sizeof(int), file->size, sizeof(unsigned char));
+
+    // Extract the extension of the file
+    char extension[EXTENSION_SIZE] = {0};
+    extension[EXTENSION_SIZE - 1] = '\0';
+    for (int i = 0; i < EXTENSION_SIZE; i++) {
+        extension[i] = (char)data[file->size + i];
+        if(extension[i] == '\0'){
+            break;
+        }
+    }
+    file->extension = (char *)malloc(strlen((const char *) extension) + 1);
+
+    // Return the FilePackage structure
+    return file;
 }
 
 

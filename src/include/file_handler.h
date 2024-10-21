@@ -42,8 +42,6 @@ typedef struct {
  */
 BMPImage *new_bmp_file(const char *file_path);
 
-
-
 /**
  * @brief Saves a BMPImage to a file.
  *
@@ -75,6 +73,18 @@ BMPImage* copy_bmp(BMPImage *bmp);
  *         The caller must free the FilePackage using free_file_package.
  */
 FilePackage *new_file_package(const char *filepath);
+
+/**
+ * @brief Creates a FilePackage from raw data in memory.
+ *
+ * This function interprets the provided raw data to extract the file size, data, and extension,
+ * and stores them in a dynamically allocated FilePackage structure.
+ *
+ * @param data Pointer to the raw data buffer.
+ * @return FilePackage* Pointer to a dynamically allocated FilePackage structure, or NULL on error.
+ *         The caller must free the FilePackage using `free_file_package`.
+ */
+FilePackage *new_file_package_from_data(const uint8_t *data);
 
 /**
  * Free the memory associated with a FilePackage.
