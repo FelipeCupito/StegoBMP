@@ -1,6 +1,7 @@
 #ifndef CRYPTO_UTILS_H
 #define CRYPTO_UTILS_H
 
+#include <file_handler.h>
 #include <openssl/evp.h>
 #include <stdint.h>
 #include "types.h"
@@ -11,7 +12,7 @@ typedef struct
     uint8_t *data;
 } ENC_MESSAGE;
 
-int encryptData(const uint8_t *plaintext, int ptextLen, uint8_t *ciphertext, ENCRYPTION encryption, ENC_MODE mode, const uint8_t *password);
-uint8_t *decryptData(const ENC_MESSAGE *encMsg, ENCRYPTION encryption, ENC_MODE mode, const uint8_t *password);
+ENC_MESSAGE *cryto(const FilePackage* filePackage, EncryptionAlgorithm encryption, EncryptionMode mode, const uint8_t *password);
+FilePackage *decrypt(ENC_MESSAGE *encMsg,EncryptionAlgorithm encryption, EncryptionMode mode, const uint8_t *password);
 
 #endif

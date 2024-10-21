@@ -2,20 +2,20 @@
 #include  <string.h>
 
 
-const EVP_CIPHER *modeForAES128(ENC_MODE mode);
-const EVP_CIPHER *modeForAES192(ENC_MODE mode);
-const EVP_CIPHER *modeForAES256(ENC_MODE mode);
-const EVP_CIPHER *modeFor3DES(ENC_MODE mode);
+const EVP_CIPHER *modeForAES128(EncryptionMode mode);
+const EVP_CIPHER *modeForAES192(EncryptionMode mode);
+const EVP_CIPHER *modeForAES256(EncryptionMode mode);
+const EVP_CIPHER *modeFor3DES(EncryptionMode mode);
 
-const EVP_CIPHER *determineCipherAndMode(ENCRYPTION encryption, ENC_MODE mode)
+const EVP_CIPHER *determineCipherAndMode(EncryptionAlgorithm encryption, EncryptionMode mode)
 {
     switch (encryption)
     {
-        case AES128:
+        case ENC_AES128:
             return modeForAES128(mode);
-        case AES192:
+        case ENC_AES192:
             return modeForAES192(mode);
-        case AES256:
+        case ENC_AES256:
             return modeForAES256(mode);
         case ENC_3DES:
             return modeFor3DES(mode);
@@ -25,15 +25,15 @@ const EVP_CIPHER *determineCipherAndMode(ENCRYPTION encryption, ENC_MODE mode)
     }
 }
 
-const EVP_CIPHER *modeForAES128(ENC_MODE mode){
+const EVP_CIPHER *modeForAES128(EncryptionMode mode){
     switch (mode){
-        case ECB:
+        case ENC_MODE_ECB:
             return EVP_aes_128_ecb();
-        case CFB:
+        case ENC_MODE_CFB:
             return EVP_aes_128_cfb1();
-        case OFB:
+        case ENC_MODE_OFB:
             return EVP_aes_128_ofb();
-        case CBC:
+        case ENC_MODE_CBC:
             return EVP_aes_128_cbc();
         default:
             break;
@@ -42,16 +42,16 @@ const EVP_CIPHER *modeForAES128(ENC_MODE mode){
     return NULL;
 }
 
-const EVP_CIPHER *modeForAES192(ENC_MODE mode){
+const EVP_CIPHER *modeForAES192(EncryptionMode mode){
 
      switch (mode){
-        case ECB:
+        case ENC_MODE_ECB:
             return EVP_aes_192_ecb();
-        case CFB:
+        case ENC_MODE_CFB:
             return EVP_aes_192_cfb1();
-        case OFB:
+        case ENC_MODE_OFB:
             return EVP_aes_192_ofb();
-        case CBC:
+        case ENC_MODE_CBC:
             return EVP_aes_192_cbc();
         default:
             break;
@@ -60,17 +60,17 @@ const EVP_CIPHER *modeForAES192(ENC_MODE mode){
     return NULL;
 }
 
-const EVP_CIPHER *modeForAES256(ENC_MODE mode)
+const EVP_CIPHER *modeForAES256(EncryptionMode mode)
 {
     switch (mode)
     {
-        case ECB:
+        case ENC_MODE_ECB:
             return EVP_aes_256_ecb();
-        case CFB:
+        case ENC_MODE_CFB:
             return EVP_aes_256_cfb1();
-        case OFB:
+        case ENC_MODE_OFB:
             return EVP_aes_256_ofb();
-        case CBC:
+        case ENC_MODE_CBC:
             return EVP_aes_256_cbc();
         default:
             break;
@@ -79,17 +79,17 @@ const EVP_CIPHER *modeForAES256(ENC_MODE mode)
     return NULL;
 }
 
-const EVP_CIPHER *modeFor3DES(ENC_MODE mode)
+const EVP_CIPHER *modeFor3DES(EncryptionMode mode)
 {
     switch (mode)
     {
-        case ECB:
+        case ENC_MODE_ECB:
             return EVP_des_ecb();
-        case CFB:
+        case ENC_MODE_CFB:
             return EVP_des_cfb1();
-        case OFB:
+        case ENC_MODE_OFB:
             return EVP_des_ofb();
-        case CBC:
+        case ENC_MODE_CBC:
             return EVP_des_cbc();
         default:
             break;
@@ -98,15 +98,15 @@ const EVP_CIPHER *modeFor3DES(ENC_MODE mode)
     return NULL;
 }
 
-size_t determineKeyLength(ENCRYPTION encryption)
+size_t determineKeyLength(EncryptionAlgorithm encryption)
 {
     switch (encryption)
     {
-        case AES128:
+        case ENC_AES128:
             return 16;
-        case AES192:
+        case ENC_AES192:
             return 24;
-        case AES256:
+        case ENC_AES256:
             return 32;
         case ENC_3DES:
             return 8;
@@ -126,9 +126,10 @@ void failureDEC() {
     exit(0);
 }
 
-int encrypt(const uint8_t *plaintext, int ptextLen, uint8_t *ciphertext, ENCRYPTION encryption, ENC_MODE mode,const uint8_t *password){
+ENC_MESSAGE* encrypt(const char* plaintext, int ptextLen, EncryptionAlgorithm encryption, EncryptionMode mode,const uint8_t *password){
     EVP_CIPHER_CTX *ctx;
     int auxLen, ciphertextLen;
+    uint8_t *ciphertext;
     const EVP_CIPHER *cipher = determineCipherAndMode(encryption, mode);
     size_t keyLen = determineKeyLength(encryption);
     uint8_t *key = malloc(keyLen);
@@ -154,11 +155,14 @@ int encrypt(const uint8_t *plaintext, int ptextLen, uint8_t *ciphertext, ENCRYPT
 
     free(key);
     free(iv);
-
-    return ciphertextLen;
+    //TODO sacar ptextLen y cambiar por strlen
+    ENC_MESSAGE *ans = malloc(sizeof(ENC_MESSAGE));
+    ans->data = ciphertext;
+    ans->size = ciphertextLen;
+    return ans;
 }
 
-uint8_t *decrypt(const ENC_MESSAGE *encMsg, ENCRYPTION encryption, ENC_MODE mode, const uint8_t *password){
+uint8_t *decryptAUX(const ENC_MESSAGE *encMsg, EncryptionAlgorithm encryption, EncryptionMode mode, const uint8_t *password){
     EVP_CIPHER_CTX *ctx;
     int auxLen;
     const EVP_CIPHER *cipher = determineCipherAndMode(encryption, mode);
@@ -187,4 +191,15 @@ uint8_t *decrypt(const ENC_MESSAGE *encMsg, ENCRYPTION encryption, ENC_MODE mode
     free(iv);
 
     return plaintext;
+    //SIZE+EXTENSION+LA INFO
+}
+
+ENC_MESSAGE *cryto(const FilePackage* filePackage, EncryptionAlgorithm encryption, EncryptionMode mode, const uint8_t *password) {
+    char *ptext = malloc(filePackage->size+strlen(filePackage->data)+strlen(filePackage->extension));
+    return encrypt(ptext,strlen(ptext),encryption,mode,password);
+}
+FilePackage *decrypt(ENC_MESSAGE *encMsg,EncryptionAlgorithm encryption, EncryptionMode mode, const uint8_t *password) {
+    uint8_t *text = decryptAUX(encMsg,encryption,mode,password);
+    FilePackage *filePackage = malloc(sizeof(FilePackage));
+    return filePackage;
 }
