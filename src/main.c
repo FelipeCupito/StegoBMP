@@ -21,7 +21,7 @@ int main(int argc, char *argv[]) {
         LOG(INFO, "Embedding mode selected.");
 
         // Load the input file
-        FilePackage *package = create_file_package(arguments.input_file);
+        FilePackage *package = new_file_package(arguments.input_file);
         if (package == NULL) {
             LOG(ERROR, "Error loading the input file.");
             return 1;
@@ -29,7 +29,7 @@ int main(int argc, char *argv[]) {
         LOG(INFO, "File loaded successfully.")
 
         // Load the BMP file
-        BMPImage *bmp = read_bmp_file(arguments.input_bmp_file);
+        BMPImage *bmp = new_bmp_file(arguments.input_bmp_file);
         if (bmp == NULL) {
             LOG(ERROR, "Error loading the BMP file.");
             return 1;

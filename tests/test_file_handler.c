@@ -19,7 +19,7 @@ void test_read_bmp_file() {
     const char *test_image_file = IMG_BASE_PATH "2x2_image.bmp";
 
     // Call the read_bmp_file function
-    BMPImage *bmp = read_bmp_file(test_image_file);
+    BMPImage *bmp = new_bmp_file(test_image_file);
     assert(bmp != NULL);
 
     // Check the width and height
@@ -51,7 +51,7 @@ void test_read_bmp_file() {
     // Free memory
     free_bmp(bmp);
 
-    LOG(INFO, "Test passed: read_bmp_file works correctly with the 2x2 BMP file.");
+    LOG(INFO, "Test passed: new_bmp_file works correctly with the 2x2 BMP file.");
 }
 
 /**
@@ -135,7 +135,7 @@ void test_read_write_bmp( const char *filename) {
     strcat(test_file, filename);
 
     // Call the read_bmp_file function
-    BMPImage *bmp_1 = read_bmp_file(test_file);
+    BMPImage *bmp_1 = new_bmp_file(test_file);
     assert(bmp_1 != NULL);
 
 
@@ -211,7 +211,7 @@ void test_create_file_package_valid() {
     fclose(file);
 
     // Crear el paquete
-    FilePackage *package = create_file_package(filename);
+    FilePackage *package = new_file_package(filename);
     assert(package != NULL);
     assert(package->size == 18);  // "Valid file content" tiene 18 bytes
     assert(strcmp(package->extension, ".txt") == 0);
@@ -229,7 +229,7 @@ void test_create_file_package_valid() {
  * Test function to handle an invalid file path
  */
 void test_create_file_package_invalid() {
-    FilePackage *package = create_file_package("non_existent_file.txt");
+    FilePackage *package = new_file_package("non_existent_file.txt");
     assert(package == NULL);  // Debe retornar NULL para un archivo inexistente
 
     printf("test_create_file_package_invalid passed.\n");
@@ -247,7 +247,7 @@ void test_print_file_package() {
     fprintf(file, "File content to print");
     fclose(file);
 
-    FilePackage *package = create_file_package(filename);
+    FilePackage *package = new_file_package(filename);
     assert(package != NULL);
 
     // Capturar la salida de la función de impresión

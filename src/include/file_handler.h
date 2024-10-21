@@ -40,7 +40,9 @@ typedef struct {
  * @param file_path Path to the BMP file on disk.
  * @return BMPImage* Pointer to a dynamically allocated BMPImage structure, or NULL if an error occurred.
  */
-BMPImage *read_bmp_file(const char *file_path);
+BMPImage *new_bmp_file(const char *file_path);
+
+
 
 /**
  * @brief Saves a BMPImage to a file.
@@ -72,7 +74,7 @@ BMPImage* copy_bmp(BMPImage *bmp);
  * @return Pointer to a dynamically allocated FilePackage structure, or NULL on error.
  *         The caller must free the FilePackage using free_file_package.
  */
-FilePackage *create_file_package(const char *filepath);
+FilePackage *new_file_package(const char *filepath);
 
 /**
  * Free the memory associated with a FilePackage.

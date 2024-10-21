@@ -37,7 +37,7 @@ void embed( FilePackage *bitmap, const char *input_bmp_file, const char *output_
     }
 
     // Load the BMP file
-    FilePackage *bmp_package = create_file_package(input_bmp_file);
+    FilePackage *bmp_package = new_file_package(input_bmp_file);
     if (bmp_package == NULL) {
         LOG(ERROR, "Error loading BMP file.")
         return;

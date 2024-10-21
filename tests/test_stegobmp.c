@@ -8,8 +8,8 @@
 
 void test_embed_algorithms(const char* bmp_path, const char* bmp_output_path, const char* msg_path, StegAlgorithm algorithm) {
 
-    FilePackage*  file = create_file_package(msg_path);
-    BMPImage* bmp = read_bmp_file(bmp_path);
+    FilePackage*  file = new_file_package(msg_path);
+    BMPImage* bmp = new_bmp_file(bmp_path);
 
     BMPImage* bmp_embed = embed(bmp, file, algorithm);
 
@@ -20,7 +20,7 @@ void test_embed_algorithms(const char* bmp_path, const char* bmp_output_path, co
 
 void test_extract_algorithms(const char* bmp_path, const char* msg_output_path, StegAlgorithm algorithm) {
 
-    BMPImage* bmp = read_bmp_file(bmp_path);
+    BMPImage* bmp = new_bmp_file(bmp_path);
 
     FilePackage* file = extract(bmp, algorithm);
     create_file_from_package(msg_output_path, file);

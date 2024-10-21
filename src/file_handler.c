@@ -16,7 +16,7 @@
 size_t get_file_size(FILE *file);
 char *get_file_extension(const char *filename);
 
-BMPImage *read_bmp_file(const char *file_path) {
+BMPImage *new_bmp_file(const char *file_path) {
     // Check if the file path is valid
     if (file_path == NULL) {
         LOG(ERROR, "Invalid file path.");
@@ -205,15 +205,15 @@ BMPImage* copy_bmp(BMPImage *bmp){
     return new_bmp;
 }
 
-FilePackage *create_file_package(const char *file_path){
-    if (file_path == NULL) {
+FilePackage *new_file_package(const char *file_path){
+    if (filepath == NULL) {
         LOG(ERROR, "Invalid file path.")
         return NULL;
     }
 
-    FILE *file = fopen(file_path, "rb");
+    FILE *file = fopen(filepath, "rb");
     if (file == NULL) {
-        LOG(ERROR, "Could not open file %s.", file_path)
+        LOG(ERROR, "Could not open file %s.", filepath)
         return NULL;
     }
 
@@ -242,7 +242,7 @@ FilePackage *create_file_package(const char *file_path){
     }
 
     // Get the file extension
-    char *extension = get_file_extension(file_path);
+    char *extension = get_file_extension(filepath);
     if (extension == NULL) {
         LOG(ERROR, "Could not get the file extension.")
         free(bitmap);
