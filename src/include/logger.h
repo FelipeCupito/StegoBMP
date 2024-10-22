@@ -61,19 +61,14 @@ LogLevel parse_log_level(const char *level);
  */
 #define LOG(level, fmt, ...)   {\
     if(level >= log_level) {\
+        FILE* output = (level == ERROR || level == FATAL) ? stderr : stdout; \
         if (level == ERROR || level == FATAL) {\
-            fprintf(stderr, "%s: %s:%d: ", log_level_to_string(level), __FILE__, __LINE__); \
-            fprintf(stderr, fmt, ##__VA_ARGS__); \
-            fprintf(stderr, "\n");\
-         } else if (level == WARNING) {\
-            fprintf(stdout, "%s: ", log_level_to_string(level)); \
-            fprintf(stdout, fmt, ##__VA_ARGS__); \
-            fprintf(stdout, "\n");\
+            fprintf(output, "%s: %s:%d: ", log_level_to_string(level), __FILE__, __LINE__); \
         } else {\
-            fprintf(stdout, "%s: ", log_level_to_string(level)); \
-            fprintf(stdout, fmt, ##__VA_ARGS__); \
-            fprintf(stdout, "\n");\
+            fprintf(output, "%s: ", log_level_to_string(level)); \
         }\
+        fprintf(output, fmt, ##__VA_ARGS__); \
+        fprintf(output, "\n");\
         if (level == FATAL) exit(1);\
     }\
 }

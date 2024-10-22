@@ -77,11 +77,11 @@ int parse_arguments(int argc, char *argv[], ProgramOptions *options) {
         switch (opt) {
             case 'e':
                 options->mode = MODE_EMBED;
-                LOG(DEBUG, "Embed mode: %s", operation_mode_to_string(options->mode));
+                LOG(DEBUG, "Embed mode: %s", operation_mode_to_string(options->mode))
                 break;
             case 'x':
                 options->mode = MODE_EXTRACT;
-                LOG(DEBUG, "Extract mode: %s", operation_mode_to_string(options->mode));
+                LOG(DEBUG, "Extract mode: %s", operation_mode_to_string(options->mode))
                 break;
             case 'i':
                 options->input_file = optarg;
@@ -141,7 +141,7 @@ int parse_arguments(int argc, char *argv[], ProgramOptions *options) {
 
     // Check -in argument with embed mode
     if (options->mode == MODE_EMBED && options->input_file == NULL) {
-        LOG(ERROR, "You must specify an input file with -in when embedding.");
+        LOG(ERROR, "You must specify an input file with -in when embedding.")
         print_usage(argv[0]);
         return 0;
     }
@@ -155,11 +155,11 @@ int parse_arguments(int argc, char *argv[], ProgramOptions *options) {
         // Set default values for encryption algorithm and mode, and log level
         if (options->encryption_algo == ENC_NONE) {
             options->encryption_algo = DEFAULT_ENCRYPTION_ALGO;
-            LOG(WARNING, "No encryption algorithm specified. Using default: %s", encryption_algorithm_to_string(DEFAULT_ENCRYPTION_ALGO));
+            LOG(WARNING, "No encryption algorithm specified. Using default: %s", encryption_algorithm_to_string(DEFAULT_ENCRYPTION_ALGO))
         }
         if(options->encryption_mode == ENC_MODE_NONE) {
             options->encryption_mode = DEFAULT_ENCRYPTION_MODE;
-            LOG(WARNING, "No encryption mode specified. Using default: %s", encryption_mode_to_string(DEFAULT_ENCRYPTION_MODE));
+            LOG(WARNING, "No encryption mode specified. Using default: %s", encryption_mode_to_string(DEFAULT_ENCRYPTION_MODE))
         }
     }
 
@@ -169,39 +169,39 @@ int parse_arguments(int argc, char *argv[], ProgramOptions *options) {
 
 void log_program_options(const ProgramOptions *options) {
     if (options == NULL) {
-        LOG(ERROR, "Invalid ProgramOptions pointer.");
+        LOG(ERROR, "Invalid ProgramOptions pointer.")
         return;
     }
 
-    LOG(INFO, "Arguments parsed successfully.");
-    LOG(DEBUG, " Program options:\n\tOperation mode: %s", operation_mode_to_string(options->mode));
+    LOG(INFO, "Arguments parsed successfully.")
+    LOG(DEBUG, " Program options:\n\tOperation mode: %s", operation_mode_to_string(options->mode))
 
     if (options->input_file != NULL) {
-        LOG(DEBUG, "\tInput file: %s", options->input_file);
+        LOG(DEBUG, "\tInput file: %s", options->input_file)
     } else {
-        LOG(DEBUG, "\tInput file: None");
+        LOG(DEBUG, "\tInput file: None")
     }
 
     if (options->input_bmp_file != NULL) {
-        LOG(DEBUG, "\tInput BMP file: %s", options->input_bmp_file);
+        LOG(DEBUG, "\tInput BMP file: %s", options->input_bmp_file)
     } else {
-        LOG(DEBUG, "\tInput BMP file: None");
+        LOG(DEBUG, "\tInput BMP file: None")
     }
 
     if (options->output_file != NULL) {
-        LOG(DEBUG, "\tOutput BMP file: %s", options->output_file);
+        LOG(DEBUG, "\tOutput BMP file: %s", options->output_file)
     } else {
-        LOG(DEBUG, "\tOutput BMP file: None");
+        LOG(DEBUG, "\tOutput BMP file: None")
     }
 
-    LOG(DEBUG, "\tSteganography algorithm: %s", steg_algorithm_to_string(options->steg_algorithm));
-    LOG(DEBUG, "\tEncryption algorithm: %s", encryption_algorithm_to_string(options->encryption_algo));
-    LOG(DEBUG, "\tEncryption mode: %s", encryption_mode_to_string(options->encryption_mode));
+    LOG(DEBUG, "\tSteganography algorithm: %s", steg_algorithm_to_string(options->steg_algorithm))
+    LOG(DEBUG, "\tEncryption algorithm: %s", encryption_algorithm_to_string(options->encryption_algo))
+    LOG(DEBUG, "\tEncryption mode: %s", encryption_mode_to_string(options->encryption_mode))
 
     if (strlen(options->password) > 0) {
-        LOG(DEBUG, "\tPassword: %s", options->password);
+        LOG(DEBUG, "\tPassword: %s", options->password)
     } else {
-        LOG(DEBUG, "\tPassword: None");
+        LOG(DEBUG, "\tPassword: None")
     }
 }
 

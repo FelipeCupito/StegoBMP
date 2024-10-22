@@ -21,28 +21,28 @@ char *get_file_extension(const char *filename);
 BMPImage *new_bmp_file(const char *file_path) {
     // Check if the file path is valid
     if (file_path == NULL) {
-        LOG(ERROR, "Invalid file path.");
+        LOG(ERROR, "Invalid file path.")
         return NULL;
     }
 
     // Open the BMP file
     FILE *file = fopen(file_path, "rb");
     if (file == NULL) {
-        LOG(ERROR, "Could not open BMP file %s.", file_path);
+        LOG(ERROR, "Could not open BMP file %s.", file_path)
         return NULL;
     }
 
     // Allocate memory for the BMPImage structure
     BMPImage *bmp = (BMPImage *)malloc(sizeof(BMPImage));
     if (bmp == NULL) {
-        LOG(ERROR, "Could not allocate memory for BMPImage.");
+        LOG(ERROR, "Could not allocate memory for BMPImage.")
         fclose(file);
         return NULL;
     }
 
     // Read the BMP header (54 bytes)
     if (fread(bmp->header, sizeof(unsigned char), BMP_HEADER_SIZE, file) != BMP_HEADER_SIZE) {
-        LOG(ERROR, "Could not read BMP header.");
+        LOG(ERROR, "Could not read BMP header.")
         fclose(file);
         free(bmp);
         return NULL;
@@ -50,7 +50,7 @@ BMPImage *new_bmp_file(const char *file_path) {
 
     // Check the BMP signature ("BM")
     if (strncmp((char *)bmp->header + BMP_SIGNATURE_OFFSET, BMP_SIGNATURE, BMP_SIGNATURE_SIZE) != 0) {
-        LOG(ERROR, "Invalid BMP file signature.");
+        LOG(ERROR, "Invalid BMP file signature.")
         fclose(file);
         free(bmp);
         return NULL;
@@ -59,7 +59,7 @@ BMPImage *new_bmp_file(const char *file_path) {
     // Verify the size of the DIB header is 40 bytes (V3 only)
     int dib_header_size = *(int *)&bmp->header[BMP_DIB_HEADER_SIZE_OFFSET];
     if (dib_header_size != BMP_DIB_HEADER_SIZE_V3) {
-        LOG(ERROR, "Unsupported BMP header size: %d bytes. Only BMP V3 with 40-byte DIB headers are supported.", dib_header_size);
+        LOG(ERROR, "Unsupported BMP header size: %d bytes. Only BMP V3 with 40-byte DIB headers are supported.", dib_header_size)
         fclose(file);
         free(bmp);
         return NULL;
@@ -68,7 +68,7 @@ BMPImage *new_bmp_file(const char *file_path) {
     // Check if the image is 24 bits per pixel
     short bits_per_pixel = *(short *)&bmp->header[BMP_BITS_PER_PIXEL_OFFSET];
     if (bits_per_pixel != BMP_24_BITS) {
-        LOG(ERROR, "Unsupported BMP format: Only 24-bit BMP files are supported. Found %d bits per pixel.", bits_per_pixel);
+        LOG(ERROR, "Unsupported BMP format: Only 24-bit BMP files are supported. Found %d bits per pixel.", bits_per_pixel)
         fclose(file);
         free(bmp);
         return NULL;
@@ -77,7 +77,7 @@ BMPImage *new_bmp_file(const char *file_path) {
     // Check if the image has no compression
     int compression = *(int *)&bmp->header[BMP_COMPRESSION_OFFSET];
     if (compression != BMP_COMPRESSION_NONE) {
-        LOG(ERROR, "Unsupported BMP format: Compression is not supported. Compression type found: %d.", compression);
+        LOG(ERROR, "Unsupported BMP format: Compression is not supported. Compression type found: %d.", compression)
         fclose(file);
         free(bmp);
         return NULL;
@@ -87,7 +87,7 @@ BMPImage *new_bmp_file(const char *file_path) {
     bmp->width = *(int *)&bmp->header[BMP_WIDTH_OFFSET];
     bmp->height = *(int *)&bmp->header[BMP_HEIGHT_OFFSET];
     if (bmp->width <= 0 || bmp->height <= 0) {
-        LOG(ERROR, "Invalid BMP dimensions: width = %lu, height = %lu.", bmp->width, bmp->height);
+        LOG(ERROR, "Invalid BMP dimensions: width = %lu, height = %lu.", bmp->width, bmp->height)
         fclose(file);
         free(bmp);
         return NULL;
@@ -97,7 +97,7 @@ BMPImage *new_bmp_file(const char *file_path) {
     // Read the size of the pixel data from the BMP header
     bmp->data_size = *(int *)&bmp->header[BMP_IMAGE_SIZE_OFFSET];
     if (bmp->data_size <= 0) {
-        LOG(ERROR, "Invalid BMP data size: %lu bytes.", bmp->data_size);
+        LOG(ERROR, "Invalid BMP data size: %lu bytes.", bmp->data_size)
         fclose(file);
         free(bmp);
         return NULL;
@@ -107,7 +107,7 @@ BMPImage *new_bmp_file(const char *file_path) {
     // Allocate memory for the pixel data
     bmp->data = (unsigned char *)malloc(bmp->data_size);
     if (bmp->data == NULL) {
-        LOG(ERROR, "Could not allocate memory for BMP data.");
+        LOG(ERROR, "Could not allocate memory for BMP data.")
         fclose(file);
         free(bmp);
         return NULL;
@@ -115,7 +115,7 @@ BMPImage *new_bmp_file(const char *file_path) {
 
     // Read the pixel data from the BMP file
     if (fread(bmp->data, sizeof(unsigned char), bmp->data_size, file) != bmp->data_size) {
-        LOG(ERROR, "Could not read BMP pixel data.");
+        LOG(ERROR, "Could not read BMP pixel data.")
         fclose(file);
         free(bmp->data);
         free(bmp);
@@ -123,38 +123,38 @@ BMPImage *new_bmp_file(const char *file_path) {
     }
 
     fclose(file);
-    LOG(INFO, "BMP file read successfully: %s.", file_path);
+    LOG(INFO, "BMP file read successfully: %s.", file_path)
     return bmp;
 }
 
 int save_bmp_file(const char *output_file, BMPImage *bmp) {
     if (output_file == NULL || bmp == NULL) {
-        LOG(ERROR, "Invalid output file path or BMP image.");
+        LOG(ERROR, "Invalid output file path or BMP image.")
         return -1;
     }
 
     FILE *file = fopen(output_file, "wb");
     if (file == NULL) {
-        LOG(ERROR, "Could not open output file %s.", output_file);
+        LOG(ERROR, "Could not open output file %s.", output_file)
         return -1;
     }
 
     // Write the BMP header
     if (fwrite(bmp->header, sizeof(unsigned char), BMP_HEADER_SIZE, file) != BMP_HEADER_SIZE) {
-        LOG(ERROR, "Could not write BMP header to file %s.", output_file);
+        LOG(ERROR, "Could not write BMP header to file %s.", output_file)
         fclose(file);
         return -1;
     }
 
     // Write the pixel data
     if (fwrite(bmp->data, sizeof(unsigned char), bmp->data_size, file) != bmp->data_size) {
-        LOG(ERROR, "Could not write BMP pixel data to file %s.", output_file);
+        LOG(ERROR, "Could not write BMP pixel data to file %s.", output_file)
         fclose(file);
         return -1;
     }
 
     fclose(file);
-    LOG(INFO, "BMP file saved successfully to %s.", output_file);
+    LOG(INFO, "BMP file saved successfully to %s.", output_file)
     return 0;
 }
 
@@ -166,9 +166,9 @@ void free_bmp(BMPImage *bmp) {
             bmp->data = NULL;
         }
         free(bmp);
-        LOG(DEBUG, "BMPImage memory freed.");
+        LOG(DEBUG, "BMPImage memory freed.")
     } else {
-        LOG(ERROR, "Attempted to free a NULL BMPImage pointer.");
+        LOG(ERROR, "Attempted to free a NULL BMPImage pointer.")
     }
 }
 
@@ -177,13 +177,13 @@ BMPImage* copy_bmp(BMPImage *bmp){
     // Allocate memory for the new BMPImage
     BMPImage* new_bmp = malloc(sizeof(BMPImage));
     if(new_bmp == NULL){
-        LOG(ERROR, "Could not allocate memory for new BMPImage.");
+        LOG(ERROR, "Could not allocate memory for new BMPImage.")
         return NULL;
     }
 
     new_bmp->data = malloc(bmp->data_size);
     if(new_bmp->data == NULL){
-        LOG(ERROR, "Could not allocate memory for new BMPImage data.");
+        LOG(ERROR, "Could not allocate memory for new BMPImage data.")
         free(new_bmp);
         return NULL;
     }
@@ -272,14 +272,14 @@ FilePackage *new_file_package_from_data(const uint8_t *data){
     // Allocate memory for the BMPImage structure
     FilePackage *file = (FilePackage *)malloc(sizeof(FilePackage));
     if (file == NULL) {
-        LOG(ERROR, "Could not allocate memory for BMPImage.");
+        LOG(ERROR, "Could not allocate memory for BMPImage.")
         return NULL;
     }
 
     // Extract the size of the data
     file->size = *(int *)&data[0];
     if (file->size <= 0) {
-        LOG(ERROR, "Invalid BMP data size: %lu bytes.", file->size);
+        LOG(ERROR, "Invalid BMP data size: %lu bytes.", file->size)
         free(file);
         return NULL;
     }
@@ -287,7 +287,7 @@ FilePackage *new_file_package_from_data(const uint8_t *data){
     // Allocate memory for the pixel data and copy the data
     file->data = (unsigned char *)malloc(file->size);
     if (file->data == NULL) {
-        LOG(ERROR, "Could not allocate memory for BMP data.");
+        LOG(ERROR, "Could not allocate memory for BMP data.")
         free(file);
         return NULL;
     }
@@ -317,7 +317,7 @@ int create_file_from_package(const char *filename, FilePackage *package) {
     }
 
     if ( package == NULL || package->extension == NULL || package->data == NULL) {
-        LOG(ERROR, "Invalid FilePackage pointer or data.");
+        LOG(ERROR, "Invalid FilePackage pointer or data.")
         return -1;
     }
 
@@ -325,7 +325,7 @@ int create_file_from_package(const char *filename, FilePackage *package) {
     size_t full_filename_length = strlen(filename) + strlen(package->extension) + 1; // +1 for null terminator
     char *full_filename = (char *)malloc(full_filename_length);
     if (full_filename == NULL) {
-        LOG(ERROR, "Could not allocate memory for the full filename.");
+        LOG(ERROR, "Could not allocate memory for the full filename.")
         return -1;
     }
 
@@ -334,7 +334,7 @@ int create_file_from_package(const char *filename, FilePackage *package) {
     // Open the file for writing
     FILE *file = fopen(full_filename, "wb");
     if (file == NULL) {
-        LOG(ERROR, "Could not open file %s for writing.", full_filename);
+        LOG(ERROR, "Could not open file %s for writing.", full_filename)
         free(full_filename);
         return -1;
     }
@@ -343,14 +343,14 @@ int create_file_from_package(const char *filename, FilePackage *package) {
     size_t written_bytes = fwrite(package->data, 1, package->size, file);
     if (written_bytes != package->size) {
         LOG(ERROR, "Error writing data to file %s. Expected %lu bytes, wrote %lu bytes.",
-                    full_filename, package->size, written_bytes);
+                    full_filename, package->size, written_bytes)
         fclose(file);
         free(full_filename);
         return -1;
     }
 
     // Successfully written the file
-    LOG(INFO, "Successfully created file %s with size %lu bytes.", full_filename, package->size);
+    LOG(INFO, "Successfully created file %s with size %lu bytes.", full_filename, package->size)
 
     // Clean up
     fclose(file);

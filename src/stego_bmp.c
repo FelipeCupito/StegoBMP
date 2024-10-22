@@ -1,7 +1,5 @@
 #include "./include/stego_bmp.h"
 
-#include <stdbool.h>
-
 void embed_LSB1(const BMPImage *bitmap, const FilePackage *file);
 void embed_LSB4(const BMPImage *bitmap, const FilePackage *file);
 void embed_LSBI(const BMPImage *bitmap, const FilePackage *file, const uint8_t *pattern);
@@ -47,7 +45,7 @@ void embed_LSB1(const BMPImage *bitmap, const FilePackage *file) {
     // Check if the file is too large to embed in the bitmap
     const size_t total_bits_needed = (file->size * 8) + 32 + (strlen(file->extension) + 1) * 8;  // Include 32 bits for size and bits for extension
     if (total_bits_needed > bitmap->data_size) {
-        LOG(ERROR, "File is too large to embed in the bitmap. Bitmap size is: %llu", bitmap->data_size);
+        LOG(ERROR, "File is too large to embed in the bitmap. Bitmap size is: %zu", bitmap->data_size)
         return;
     }
 
@@ -74,13 +72,13 @@ void embed_LSB1(const BMPImage *bitmap, const FilePackage *file) {
         }
     }
 
-    LOG(INFO, "File, size, and extension embedded using LSB1 algorithm.");
+    LOG(INFO, "File, size, and extension embedded using LSB1 algorithm.")
 }
 
 void embed_LSB4(const BMPImage *bitmap, const FilePackage *file) {
     // Check if the file is too large to embed in the bitmap
     if (file->size * 2 > bitmap->data_size) {
-        LOG(ERROR, "File is too large to embed in the bitmap. Bitmap size is: %llu", bitmap->data_size);
+        LOG(ERROR, "File is too large to embed in the bitmap. Bitmap size is: %zu", bitmap->data_size)
         return;
     }
 
@@ -111,13 +109,13 @@ void embed_LSB4(const BMPImage *bitmap, const FilePackage *file) {
         }
     }
 
-    LOG(INFO, "File and extension embedded using LSB4 algorithm.");
+    LOG(INFO, "File and extension embedded using LSB4 algorithm.")
 }
 
 void embed_LSBI(const BMPImage *bitmap, const FilePackage *file, const uint8_t *pattern) {
     // Check if the file is too large to embed in the bitmap
     if ((file->size * 8 + 32 + 4) > bitmap->data_size) {  // Incluye 32 bits para el tamaño y 4 bits para los patrones
-        LOG(ERROR, "File is too large to embed in the bitmap.");
+        LOG(ERROR, "File is too large to embed in the bitmap.")
         return;
     }
 
@@ -150,7 +148,7 @@ void embed_LSBI(const BMPImage *bitmap, const FilePackage *file, const uint8_t *
         }
     }
 
-    LOG(INFO, "File, size, extension, and patterns embedded using LSBI algorithm.");
+    LOG(INFO, "File, size, extension, and patterns embedded using LSBI algorithm.")
 }
 
 
@@ -185,7 +183,7 @@ FilePackage* extract_LSB1(const BMPImage *bitmap) {
 
     FilePackage *file = malloc(sizeof(FilePackage));
     if (!file) {
-        LOG(ERROR, "Memory allocation failed.");
+        LOG(ERROR, "Memory allocation failed.")
         return NULL;
     }
 
@@ -194,12 +192,12 @@ FilePackage* extract_LSB1(const BMPImage *bitmap) {
     for (size_t i = 0; i < 32; i++) {
         file->size = (file->size << 1) | (bitmap->data[i] & 0x01);
     }
-    LOG(INFO, "Extracted file size: %llu", file->size);
+    LOG(INFO, "Extracted file size: %zu", file->size)
 
     // Allocate memory for the file data
     file->data = malloc(file->size);
     if (!file->data) {
-        LOG(ERROR, "Memory allocation for file data failed.");
+        LOG(ERROR, "Memory allocation for file data failed.")
         free(file);
         return NULL;
     }
@@ -213,20 +211,20 @@ FilePackage* extract_LSB1(const BMPImage *bitmap) {
         file->data[i] = byte;
     }
 
-    LOG(INFO, "File data extracted.");
+    LOG(INFO, "File data extracted.")
 
     // Extract the file extension (after the file data, until the null terminator '\0')
     const size_t extension_offset = 32 + file->size * 8;
-    char *extension = malloc(6);  // Assuming max 6 characters for the extension, including '.\0'
+    char *extension = malloc(16);  // Assuming max 16 characters for the extension, including '.\0'
     if (!extension) {
-        LOG(ERROR, "Memory allocation for extension failed.");
+        LOG(ERROR, "Memory allocation for extension failed.")
         free(file->data);
         free(file);
         return NULL;
     }
 
     size_t ext_pos = 0;
-    unsigned char ext_char = 0;
+    unsigned char ext_char;
     do {
         ext_char = 0;
         for (int bit = 0; bit < 8; bit++) {
@@ -237,7 +235,7 @@ FilePackage* extract_LSB1(const BMPImage *bitmap) {
 
     extension[ext_pos] = '\0';  // Ensure null-termination
 
-    LOG(INFO, "Extracted file extension: %s", extension);
+    LOG(INFO, "Extracted file extension: %s", extension)
 
     file->extension = extension;
 
@@ -248,7 +246,7 @@ FilePackage* extract_LSB4(const BMPImage *bitmap) {
 
     FilePackage *file = malloc(sizeof(FilePackage));
     if (!file) {
-        LOG(ERROR, "Memory allocation failed.");
+        LOG(ERROR, "Memory allocation failed.")
         return NULL;
     }
 
@@ -257,12 +255,12 @@ FilePackage* extract_LSB4(const BMPImage *bitmap) {
     for (size_t i = 0; i < 8; i++) {
         file->size = (file->size << 4) | (bitmap->data[i] & 0x0F);
     }
-    LOG(INFO, "Extracted file size: %u bytes", file->size);
+    LOG(INFO, "Extracted file size: %zu bytes", file->size)
 
     // Allocate memory for the file data
     file->data = malloc(file->size);
     if (!file->data) {
-        LOG(ERROR, "Memory allocation for file data failed.");
+        LOG(ERROR, "Memory allocation for file data failed.")
         free(file);
         return NULL;
     }
@@ -278,19 +276,19 @@ FilePackage* extract_LSB4(const BMPImage *bitmap) {
         file->data[i] = byte;
     }
 
-    LOG(INFO, "File data extracted.");
+    LOG(INFO, "File data extracted.")
 
     // Extract the file extension (after the file data, until the null terminator '\0')
     char *extension = malloc(6);  // Assuming max 6 characters for the extension, including '.\0'
     if (!extension) {
-        LOG(ERROR, "Memory allocation for extension failed.");
+        LOG(ERROR, "Memory allocation for extension failed.")
         free(file->data);
         free(file);
         return NULL;
     }
 
     size_t ext_pos = 0;
-    unsigned char ext_char = 0;
+    unsigned char ext_char;
     do {
         ext_char = 0;
         for (int nibble = 0; nibble < 2; nibble++) {  // Each character in the extension is extracted from two nibbles (4 bits)
@@ -302,7 +300,7 @@ FilePackage* extract_LSB4(const BMPImage *bitmap) {
 
     extension[ext_pos] = '\0';  // Ensure null-termination
 
-    LOG(INFO, "Extracted file extension: %s", extension);
+    LOG(INFO, "Extracted file extension: %s", extension)
 
     // Optionally, store the extension in the FilePackage or return it as needed.
     file->extension = extension;  // Assuming the FilePackage structure has an 'extension' field
@@ -371,7 +369,7 @@ FilePackage* extract_LSB4(const BMPImage *bitmap) {
 FilePackage* extract_LSBI(const BMPImage *bitmap) {
     FilePackage *file = malloc(sizeof(FilePackage));
     if (!file) {
-        LOG(ERROR, "Memory allocation failed for file package.");
+        LOG(ERROR, "Memory allocation failed for file package.")
         return NULL;
     }
 
@@ -381,7 +379,7 @@ FilePackage* extract_LSBI(const BMPImage *bitmap) {
         uint8_t bit_value = bitmap->data[i] & 0x01;
         pattern[i / 2] = (pattern[i / 2] << 1) | bit_value;
     }
-    LOG(INFO, "Extracted pattern: %u %u", pattern[0], pattern[1]);
+    LOG(INFO, "Extracted pattern: %u %u", pattern[0], pattern[1])
 
     // Extraer el tamaño del archivo (32 bits), teniendo en cuenta el patrón
     uint32_t file_size = 0;
@@ -397,11 +395,11 @@ FilePackage* extract_LSBI(const BMPImage *bitmap) {
         file_size = (file_size << 1) | bit;
     }
     file->size = file_size;
-    LOG(INFO, "Extracted file size: %u bytes", file_size);
+    LOG(INFO, "Extracted file size: %u bytes", file_size)
 
     // Validación del tamaño
     if (file_size > bitmap->data_size / 8) {
-        LOG(ERROR, "Extracted file size is larger than the available data.");
+        LOG(ERROR, "Extracted file size is larger than the available data.")
         free(file);
         return NULL;
     }
@@ -409,7 +407,7 @@ FilePackage* extract_LSBI(const BMPImage *bitmap) {
     // Asignar memoria para los datos del archivo
     file->data = malloc(file_size);
     if (!file->data) {
-        LOG(ERROR, "Memory allocation failed for file data.");
+        LOG(ERROR, "Memory allocation failed for file data.")
         free(file);
         return NULL;
     }
@@ -431,7 +429,7 @@ FilePackage* extract_LSBI(const BMPImage *bitmap) {
         }
         file->data[i] = byte;
     }
-    LOG(INFO, "File data extracted.");
+    LOG(INFO, "File data extracted.")
 
     // Extraer la extensión del archivo (máximo 15 caracteres), teniendo en cuenta el patrón
     size_t extension_offset = data_start + file_size * 8;
@@ -453,7 +451,7 @@ FilePackage* extract_LSBI(const BMPImage *bitmap) {
         if (ext_char == '\0') break;
     }
     file->extension = strdup(extension);
-    LOG(INFO, "Extracted file extension: %s", file->extension);
+    LOG(INFO, "Extracted file extension: %s", file->extension)
 
     return file;
 }

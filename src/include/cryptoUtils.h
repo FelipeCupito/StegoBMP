@@ -6,8 +6,7 @@
 #include <stdint.h>
 #include "types.h"
 
-typedef struct
-{
+typedef struct{
     uint32_t size;
     uint8_t *data;
 } ENC_MESSAGE;

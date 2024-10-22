@@ -11,6 +11,28 @@ Antes de compilar y correr el proyecto, asegúrate de tener los siguientes requi
 - **CMake** (Versión 3.28 o superior)
 - Un compilador de C (por ejemplo, GCC o Clang)
 - **Make** (si estás en un sistema basado en Unix como Linux o macOS)
+- **OpenSSL** (para las operaciones criptográficas)
+
+### Instalación de OpenSSL
+
+El proyecto **StegoBMP** requiere **OpenSSL** para realizar operaciones de criptografía. Asegúrate de tenerlo instalado en tu sistema.
+
+#### En Linux (Debian/Ubuntu):
+
+```bash
+sudo apt-get update
+sudo apt-get install libssl-dev
+```
+
+#### En macOS con Homebrew:
+
+```bash
+brew install openssl
+```
+
+#### En Windows:
+
+Puedes descargar e instalar OpenSSL desde el [sitio oficial de OpenSSL](https://slproweb.com/products/Win32OpenSSL.html). Asegúrate de que las rutas de OpenSSL estén correctamente configuradas en tu entorno.
 
 ### Instalación de CMake
 
@@ -30,7 +52,6 @@ brew install cmake
 #### En Windows:
 
 Puedes descargar CMake desde el [sitio oficial de CMake](https://cmake.org/download/) y seguir las instrucciones de instalación.
-
 
 ## Instrucciones para Compilar el Proyecto
 
@@ -100,4 +121,3 @@ Esto eliminará los archivos binarios generados y te permitirá comenzar desde c
 ## Contribuciones
 
 falta...
-
