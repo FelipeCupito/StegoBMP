@@ -109,6 +109,11 @@ void print_file_package(FilePackage *package);
  */
 int create_file_from_package(const char *filename, FilePackage *package);
 
+
+
+int create_file_from_raw_data(const char *filename, const uint8_t *data);
+
+
 #ifdef TESTING
 /**
  * Only used for testing purposes.

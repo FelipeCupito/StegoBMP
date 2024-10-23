@@ -172,27 +172,35 @@ void free_bmp(BMPImage *bmp) {
     }
 }
 
-BMPImage* copy_bmp(BMPImage *bmp){
-
-    // Allocate memory for the new BMPImage
-    BMPImage* new_bmp = malloc(sizeof(BMPImage));
-    if(new_bmp == NULL){
-        LOG(ERROR, "Could not allocate memory for new BMPImage.")
+BMPImage* copy_bmp(BMPImage *bmp) {
+    if (bmp == NULL) {
+        LOG(ERROR, "copy_bmp recibió un puntero NULL.")
         return NULL;
     }
 
+    // Asignar memoria para el nuevo BMPImage
+    BMPImage* new_bmp = malloc(sizeof(BMPImage));
+    if (new_bmp == NULL) {
+        LOG(ERROR, "No se pudo asignar memoria para el nuevo BMPImage.")
+        return NULL;
+    }
+
+    // Copiar el encabezado
+    memcpy(new_bmp->header, bmp->header, BMP_HEADER_SIZE);
+
+    // Copiar otros campos
+    new_bmp->width = bmp->width;
+    new_bmp->height = bmp->height;
+    new_bmp->data_size = bmp->data_size;
+
+    // Asignar y copiar los datos de píxeles
     new_bmp->data = malloc(bmp->data_size);
-    if(new_bmp->data == NULL){
-        LOG(ERROR, "Could not allocate memory for new BMPImage data.")
+    if (new_bmp->data == NULL) {
+        LOG(ERROR, "No se pudo asignar memoria para los datos de BMP.")
         free(new_bmp);
         return NULL;
     }
-    memccpy(new_bmp->data, bmp->data, bmp->data_size, sizeof(unsigned char));
-
-    new_bmp->data_size = bmp->data_size;
-    new_bmp->width = bmp->width;
-    new_bmp->height = bmp->height;
-    memccpy(new_bmp->header, bmp->header, BMP_HEADER_SIZE, sizeof(unsigned char));
+    memcpy(new_bmp->data, bmp->data, bmp->data_size);
 
     return new_bmp;
 }
@@ -263,50 +271,65 @@ FilePackage *new_file_package(const char *filepath){
     return package;
 }
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "logger.h"
+
 FilePackage *new_file_package_from_data(const uint8_t *data){
     if(data == NULL){
         LOG(ERROR, "Invalid data pointer.")
         return NULL;
     }
 
-    // Allocate memory for the BMPImage structure
+    // Asignar memoria para la estructura FilePackage
     FilePackage *file = (FilePackage *)malloc(sizeof(FilePackage));
     if (file == NULL) {
-        LOG(ERROR, "Could not allocate memory for BMPImage.")
+        LOG(ERROR, "Could not allocate memory for FilePackage.")
         return NULL;
     }
 
-    // Extract the size of the data
+    // Extraer el tamaño de los datos (los primeros 4 bytes)
     file->size = *(int *)&data[0];
     if (file->size <= 0) {
-        LOG(ERROR, "Invalid BMP data size: %lu bytes.", file->size)
+        LOG(ERROR, "Invalid file data size: %lu bytes.", file->size)
         free(file);
         return NULL;
     }
 
-    // Allocate memory for the pixel data and copy the data
+    // Asignar memoria para los datos del archivo y copiarlos
     file->data = (unsigned char *)malloc(file->size);
     if (file->data == NULL) {
-        LOG(ERROR, "Could not allocate memory for BMP data.")
+        LOG(ERROR, "Could not allocate memory for file data.")
         free(file);
         return NULL;
     }
-    memccpy(file->data, data + sizeof(int), file->size, sizeof(unsigned char));
+    memcpy(file->data, data + sizeof(int), file->size); // Reemplazado memccpy por memcpy
 
-    // Extract the extension of the file
+    // Extraer la extensión del archivo
     char extension[EXTENSION_SIZE] = {0};
-    extension[EXTENSION_SIZE - 1] = '\0';
-    for (int i = 0; i < EXTENSION_SIZE; i++) {
-        extension[i] = (char)data[file->size + i];
+    // Leer desde data + sizeof(int) + file->size
+    for (int i = 0; i < EXTENSION_SIZE - 1; i++) { // Reservar espacio para '\0'
+        extension[i] = (char)data[sizeof(int) + file->size + i];
         if(extension[i] == '\0'){
             break;
         }
     }
-    file->extension = (char *)malloc(strlen((const char *) extension) + 1);
 
-    // Return the FilePackage structure
+    // Asignar memoria y copiar la extensión
+    file->extension = strdup(extension); // strdup asigna y copia la cadena
+    if (file->extension == NULL){
+        LOG(ERROR, "Could not allocate memory for file extension.")
+        free(file->data);
+        free(file);
+        return NULL;
+    }
+
+    LOG(INFO, "FilePackage created successfully: size = %lu, extension = %s", file->size, file->extension)
     return file;
 }
+
+
 
 
 int create_file_from_package(const char *filename, FilePackage *package) {
@@ -357,6 +380,24 @@ int create_file_from_package(const char *filename, FilePackage *package) {
     free(full_filename);
 
     return 0;
+}
+
+int create_file_from_raw_data(const char *filename, const uint8_t *data){
+
+    if(filename == NULL || data == NULL){
+        LOG(ERROR, "Invalid filename or data pointer.")
+        return -1;
+    }
+
+    FilePackage  *file = new_file_package_from_data(data);
+    if(file == NULL){
+        LOG(ERROR, "Could not create FilePackage from raw data.")
+        return -1;
+    }
+
+    int result = create_file_from_package(filename, file);
+    free_file_package(file);
+    return result;
 }
 
 void free_file_package(FilePackage *package) {
