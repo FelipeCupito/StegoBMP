@@ -50,7 +50,7 @@ const EVP_CIPHER *modeForAES192(EncryptionMode mode){
         case ENC_MODE_CFB:
             return EVP_aes_192_cfb1();
         case ENC_MODE_OFB:
-            return EVP_aes_192_ofb();
+            return EVP_aes_256_cfb8();
         case ENC_MODE_CBC:
             return EVP_aes_192_cbc();
         default:
@@ -86,7 +86,7 @@ const EVP_CIPHER *modeFor3DES(EncryptionMode mode)
         case ENC_MODE_ECB:
             return EVP_des_ecb();
         case ENC_MODE_CFB:
-            return EVP_des_cfb1();
+            return EVP_des_ede3_cfb1();
         case ENC_MODE_OFB:
             return EVP_des_ofb();
         case ENC_MODE_CBC:
@@ -98,23 +98,6 @@ const EVP_CIPHER *modeFor3DES(EncryptionMode mode)
     return NULL;
 }
 
-size_t determineKeyLength(EncryptionAlgorithm encryption)
-{
-    switch (encryption)
-    {
-        case ENC_AES128:
-            return 16;
-        case ENC_AES192:
-            return 24;
-        case ENC_AES256:
-            return 32;
-        case ENC_3DES:
-            return 8;
-        case ENC_NONE:
-        default:
-            return 0;
-    }
-}
 
 void failureMSG(){
     fprintf(stderr, "Failed to encrypt data\n");
@@ -126,23 +109,24 @@ void failureDEC() {
     exit(0);
 }
 
-ENC_MESSAGE* encrypt(const char* plaintext, int ptextLen, EncryptionAlgorithm encryption, EncryptionMode mode,const uint8_t *password){
+ENC_MESSAGE* encrypt(const char* plaintext,EncryptionAlgorithm encryption, EncryptionMode mode,const char *password){
     EVP_CIPHER_CTX *ctx;
     int auxLen, ciphertextLen;
     uint8_t *ciphertext;
     const EVP_CIPHER *cipher = determineCipherAndMode(encryption, mode);
-    size_t keyLen = determineKeyLength(encryption);
-    uint8_t *key = malloc(keyLen);
-    uint8_t *iv = malloc(keyLen);
-    EVP_BytesToKey(cipher, EVP_sha256(), NULL, password, (int)strlen((char *)password), 1, key, iv);
+    const int keylen = EVP_CIPHER_key_length(cipher);
+    const int ivlen = EVP_CIPHER_iv_length(cipher);
+    unsigned char* key_iv_pair = malloc(keylen + ivlen);
+    const unsigned char salt[8] = {0};
+    PKCS5_PBKDF2_HMAC(password,-1,salt,sizeof(salt),10000,EVP_sha256(),keylen+ivlen,key_iv_pair);
 
     if (!(ctx = EVP_CIPHER_CTX_new()))
         failureMSG();
 
-    if (EVP_EncryptInit_ex(ctx, cipher, NULL, key, iv) != 1)
+    if (EVP_EncryptInit_ex2(ctx, cipher, key_iv_pair, key_iv_pair + keylen,NULL) != 1)
         failureMSG();
 
-    if (EVP_EncryptUpdate(ctx, ciphertext, &auxLen, plaintext, ptextLen) != 1)
+    if (EVP_EncryptUpdate(ctx, ciphertext, &auxLen, plaintext, strlen(plaintext)) != 1)
         failureMSG();
 
     ciphertextLen = auxLen;
@@ -153,9 +137,9 @@ ENC_MESSAGE* encrypt(const char* plaintext, int ptextLen, EncryptionAlgorithm en
     ciphertextLen += auxLen;
     EVP_CIPHER_CTX_free(ctx);
 
-    free(key);
-    free(iv);
-    //TODO sacar ptextLen y cambiar por strlen
+    free(key_iv_pair);
+    EVP_CIPHER_CTX_free(ctx);
+    EVP_CIPHER_free(cipher);
     ENC_MESSAGE *ans = malloc(sizeof(ENC_MESSAGE));
     ans->data = ciphertext;
     ans->size = ciphertextLen;
@@ -198,7 +182,7 @@ ENC_MESSAGE *cryto(const FilePackage* filePackage, EncryptionAlgorithm encryptio
     size_t total_len = filePackage->size + strlen((char *)filePackage->data) + strlen(filePackage->extension) + 20; // 20 extra for size_t conversion
     char *ptext = malloc(total_len);
     sprintf(ptext, "%zu%s%s", filePackage->size, filePackage->data, filePackage->extension);
-    ENC_MESSAGE *ans = encrypt(ptext,(int)strlen(ptext),encryption,mode,password);
+    ENC_MESSAGE *ans = encrypt(ptext,encryption,mode,password);
     free(ptext);
     return ans;
 }
