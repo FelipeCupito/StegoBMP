@@ -28,13 +28,13 @@ target_link_libraries(stegobmp OpenSSL::SSL OpenSSL::Crypto)
 enable_testing()
 
 # file handler tests
-add_executable(test_file_handler
-        tests/test_file_handler.c
+add_executable(test_bmp_image
+        tests/test_bmp_image.c
         src/logger.c
-        src/file_handler.c
+        src/bmp_image.c
 )
-target_compile_definitions(test_file_handler PRIVATE TESTING)
-add_test(NAME FileHandlerTest COMMAND test_file_handler)
+target_compile_definitions(test_bmp_image PRIVATE TESTING)
+add_test(NAME BmpImage COMMAND test_bmp_image)
 
 # argumnets tests
 add_executable(test_arguments
@@ -50,10 +50,21 @@ add_executable(test_stegobmp
         tests/test_stegobmp.c
         src/logger.c
         src/stego_bmp.c
-        src/file_handler.c
+        src/bmp_image.c
+        src/file_package.c
 )
 target_compile_definitions(test_stegobmp PRIVATE TESTING)
 add_test(NAME StegoBMPTest COMMAND test_stegobmp)
+
+# file packager tests
+add_executable(test_file_package
+        tests/test_file_package.c
+        src/logger.c
+        src/file_package.c
+)
+target_compile_definitions(test_file_package PRIVATE TESTING)
+add_test(NAME FilePackageTest COMMAND test_file_package)
+
 
 
 
