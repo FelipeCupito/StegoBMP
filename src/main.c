@@ -2,11 +2,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "./include/logger.h"
-#include "./include/file_handler.h"
+#include "./include/bmp_image.h"
 #include "./include/arguments.h"
+#include "./include/file_package.h"
 
 int main(int argc, char *argv[]) {
-    // Parse command-line arguments
+    //Parse command-line arguments
     ProgramOptions arguments;
     if (!parse_arguments(argc, argv, &arguments)) {
         LOG(ERROR, "Error parsing arguments.")
@@ -41,9 +42,6 @@ int main(int argc, char *argv[]) {
 
         // Embed the file into the BMP image
         //TODO: implementar la inserci
-
-
-
 
 
     } else if (arguments.mode == MODE_EXTRACT) {
