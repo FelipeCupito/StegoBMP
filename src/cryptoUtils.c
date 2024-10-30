@@ -86,7 +86,7 @@ const EVP_CIPHER *modeFor3DES(EncryptionMode mode)
         case ENC_MODE_ECB:
             return EVP_des_ecb();
         case ENC_MODE_CFB:
-            return EVP_des_ede3_cfb1();
+            return EVP_des_ede3_cfb8();
         case ENC_MODE_OFB:
             return EVP_des_ofb();
         case ENC_MODE_CBC:
@@ -151,7 +151,7 @@ uint8_t *decryptAUX(const ENC_MESSAGE *encMsg, EncryptionAlgorithm encryption, E
     int auxLen;
     const EVP_CIPHER *cipher = determineCipherAndMode(encryption, mode);
     uint8_t *plaintext = calloc(encMsg->size, 1);
-    size_t keyLen = determineKeyLength(encryption);
+    size_t keyLen = EVP_CIPHER_key_length(cipher);
     uint8_t *key = malloc(keyLen);
     uint8_t *iv = malloc(keyLen);
 
@@ -188,6 +188,5 @@ ENC_MESSAGE *cryto(const FilePackage* filePackage, EncryptionAlgorithm encryptio
 }
 FilePackage *decrypt(ENC_MESSAGE *encMsg,EncryptionAlgorithm encryption, EncryptionMode mode, const uint8_t *password) {
     uint8_t *text = decryptAUX(encMsg,encryption,mode,password);
-    FilePackage *filePackage = malloc(sizeof(FilePackage));
-    return filePackage;
+    return new_file_package_from_data(text);
 }
