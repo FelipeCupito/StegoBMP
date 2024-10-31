@@ -8,6 +8,8 @@ set(CMAKE_C_STANDARD 11)
 include_directories(src/include)
 
 # Buscar la librería OpenSSL
+set(OPENSSL_ROOT_DIR "C:/Program Files/OpenSSL-Win64")
+set(OPENSSL_INCLUDE_DIR "C:/Program Files/OpenSSL-Win64/include")
 find_package(OpenSSL REQUIRED)
 
 # Incluir directorios de la librería de CUnit

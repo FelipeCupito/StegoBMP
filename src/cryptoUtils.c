@@ -1,7 +1,6 @@
 #include "include/cryptoUtils.h"
 #include  <string.h>
 
-
 const EVP_CIPHER *modeForAES128(EncryptionMode mode);
 const EVP_CIPHER *modeForAES192(EncryptionMode mode);
 const EVP_CIPHER *modeForAES256(EncryptionMode mode);
