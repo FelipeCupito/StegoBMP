@@ -116,7 +116,7 @@ ENC_MESSAGE* encrypt(const char* plaintext,EncryptionAlgorithm encryption, Encry
     const int keylen = EVP_CIPHER_key_length(cipher);
     const int ivlen = EVP_CIPHER_iv_length(cipher);
     unsigned char* key_iv_pair = malloc(keylen + ivlen);
-    const unsigned char salt[2] = {0};
+    const unsigned char salt[8] = {0};
     PKCS5_PBKDF2_HMAC(password,-1,salt,sizeof(salt),10000,EVP_sha256(),keylen+ivlen,key_iv_pair);
 
     if (!(ctx = EVP_CIPHER_CTX_new()))
