@@ -1,12 +1,12 @@
 #include "include/cryptoUtils.h"
 #include  <string.h>
 
-const EVP_CIPHER *modeForAES128(EncryptionMode mode);
-const EVP_CIPHER *modeForAES192(EncryptionMode mode);
-const EVP_CIPHER *modeForAES256(EncryptionMode mode);
-const EVP_CIPHER *modeFor3DES(EncryptionMode mode);
+EVP_CIPHER *modeForAES128(EncryptionMode mode);
+EVP_CIPHER *modeForAES192(EncryptionMode mode);
+EVP_CIPHER *modeForAES256(EncryptionMode mode);
+EVP_CIPHER *modeFor3DES(EncryptionMode mode);
 
-const EVP_CIPHER *determineCipherAndMode(EncryptionAlgorithm encryption, EncryptionMode mode)
+EVP_CIPHER *determineCipherAndMode(EncryptionAlgorithm encryption, EncryptionMode mode)
 {
     switch (encryption)
     {
@@ -24,7 +24,7 @@ const EVP_CIPHER *determineCipherAndMode(EncryptionAlgorithm encryption, Encrypt
     }
 }
 
-const EVP_CIPHER *modeForAES128(EncryptionMode mode){
+EVP_CIPHER *modeForAES128(EncryptionMode mode){
     switch (mode){
         case ENC_MODE_ECB:
             return EVP_aes_128_ecb();
@@ -41,7 +41,7 @@ const EVP_CIPHER *modeForAES128(EncryptionMode mode){
     return NULL;
 }
 
-const EVP_CIPHER *modeForAES192(EncryptionMode mode){
+EVP_CIPHER *modeForAES192(EncryptionMode mode){
 
      switch (mode){
         case ENC_MODE_ECB:
@@ -58,8 +58,7 @@ const EVP_CIPHER *modeForAES192(EncryptionMode mode){
 
     return NULL;
 }
-
-const EVP_CIPHER *modeForAES256(EncryptionMode mode)
+EVP_CIPHER *modeForAES256(EncryptionMode mode)
 {
     switch (mode)
     {
@@ -78,7 +77,7 @@ const EVP_CIPHER *modeForAES256(EncryptionMode mode)
     return NULL;
 }
 
-const EVP_CIPHER *modeFor3DES(EncryptionMode mode)
+EVP_CIPHER *modeFor3DES(EncryptionMode mode)
 {
     switch (mode)
     {
@@ -112,7 +111,7 @@ ENC_MESSAGE* encrypt(const char* plaintext,EncryptionAlgorithm encryption, Encry
     EVP_CIPHER_CTX *ctx;
     int auxLen, ciphertextLen;
     uint8_t *ciphertext;
-    const EVP_CIPHER *cipher = determineCipherAndMode(encryption, mode);
+    EVP_CIPHER *cipher = determineCipherAndMode(encryption, mode);
     const int keylen = EVP_CIPHER_key_length(cipher);
     const int ivlen = EVP_CIPHER_iv_length(cipher);
     unsigned char* key_iv_pair = malloc(keylen + ivlen);
