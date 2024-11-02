@@ -70,3 +70,9 @@ resources/test_images/output_image.bmp
 resources/test_images/*.txt
 
 resources/test_images/sample1_teste.bmp
+
+resources/test_images/OUTPUT-ladoLSBI.bmp.png
+
+resources/test_images/OUTPUT-ladoLSB4.bmp.png
+
+resources/test_images/OUTPUT-ladoLSB1.bmp.png
