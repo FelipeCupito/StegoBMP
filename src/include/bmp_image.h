@@ -1,7 +1,6 @@
 #ifndef STEGOBMP_BMP_IMAGE_H
 #define STEGOBMP_BMP_IMAGE_H
 
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -20,16 +19,17 @@ typedef struct {
     size_t height;                           // Height of the image in pixels
 } BMPImage;
 
-/**
- * @brief Representa un píxel con sus tres componentes de color (BGR).
- */
-typedef struct __attribute__((packed)) {
-    uint8_t blue;
-    uint8_t green;
-    uint8_t red;
-} Pixel;
+typedef enum {
+    BLUE = 0,
+    GREEN = 1,
+    RED = 2,
+    INVALID_COLOR
+} ColorType;
 
-
+typedef struct {
+    uint8_t *component_ptr; // Puntero al componente de color
+    ColorType color;        // Tipo de color (BLUE, GREEN, RED)
+} Component;
 
 /**
  * @brief Reads a BMP file from disk and loads its header and pixel data.
@@ -58,14 +58,16 @@ int save_bmp_file(const char *output_file, BMPImage *bmp);
 /**
  * @brief Frees the memory associated with a BMPImage.
  *
- * This function frees the dynamically allocated memory for the pixel data
- * and the BMPImage structure itself.
- *
  * @param bmp Pointer to the BMPImage structure to free.
  */
 void free_bmp(BMPImage *bmp);
 
-
+/**
+ * @brief Creates a deep copy of a BMPImage structure.
+ *
+ * @param bmp Pointer to the BMPImage structure to copy.
+ * @return BMPImage* Pointer to a new BMPImage structure with copied data.
+ */
 BMPImage* copy_bmp(BMPImage *bmp);
 
 /**
@@ -75,17 +77,7 @@ BMPImage* copy_bmp(BMPImage *bmp);
  * @param index     Índice del componente de color (byte) a acceder.
  * @return uint8_t* Puntero al componente de color (modificable).
  */
-uint8_t* get_component_by_index(const BMPImage *bmp, size_t index);
-
-/**
- * @brief Obtiene un puntero al píxel (con sus componentes BGR) según el índice de píxel.
- *
- * @param bmp       Puntero a la estructura BMPImage.
- * @param pixel_index Índice del píxel a acceder (0 = primer píxel, 1 = segundo píxel, etc.).
- * @return Pixel*   Puntero al píxel (modificable).
- */
-Pixel* get_pixel_by_index(const BMPImage *bmp, size_t pixel_index);
-
+Component get_component_by_index(const BMPImage *bmp, size_t index);
 
 
 #endif //STEGOBMP_BMP_IMAGE_H

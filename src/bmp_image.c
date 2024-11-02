@@ -163,9 +163,6 @@ void free_bmp(BMPImage *bmp) {
             bmp->data = NULL;
         }
         free(bmp);
-        LOG(DEBUG, "BMPImage memory freed.")
-    } else {
-        LOG(ERROR, "Attempted to free a NULL BMPImage pointer.")
     }
 }
 
@@ -202,82 +199,41 @@ BMPImage* copy_bmp(BMPImage *bmp) {
     return new_bmp;
 }
 
-uint8_t* get_component_by_index(const BMPImage *bmp, size_t index) {
+Component get_component_by_index(const BMPImage *bmp, size_t index) {
+    Component result = {NULL, INVALID_COLOR};
+
     if (bmp == NULL || bmp->data == NULL) {
         LOG(ERROR, "BMPImage o datos BMP NULL en get_component_by_index.");
-        return NULL;
+        return result;
     }
 
-    size_t row_size = (bmp->width * 3 + 3) & ~3;  // Ajuste para padding (tamaño real de la fila)
+    size_t row_size = (bmp->width * 3 + 3) & ~3;  // Tamaño de la fila con padding
     size_t total_components = bmp->width * bmp->height * 3;
 
     if (index >= total_components) {
         LOG(ERROR, "Índice fuera de límites en get_component_by_index. Índice: %zu, Total componentes: %zu", index, total_components);
-        return NULL;
+        return result;
     }
 
     size_t pixel_row = index / (bmp->width * 3);        // Fila del componente
     size_t offset_in_row = index % (bmp->width * 3);    // Desplazamiento en la fila
 
-    // Retornar un puntero al componente en bmp_data
-    return &bmp->data[pixel_row * row_size + offset_in_row];
-}
+    // Obtener el puntero al componente en los datos de BMP
+    result.component_ptr = &bmp->data[pixel_row * row_size + offset_in_row];
 
-//uint8_t* get_component_by_index(BMPImage *bmp, size_t index) {
-//    size_t components_per_row = bmp->width * 3;
-//    size_t row_size = (components_per_row + 3) & ~3;  // Tamaño real de la fila, incluyendo padding
-//    size_t row = index / components_per_row;
-//    size_t column = index % components_per_row;
-//
-//    size_t data_index = row * row_size + column;
-//
-//    // Verificación de límites para evitar desbordamientos
-//    if (data_index >= bmp->data_size) {
-//        LOG(ERROR, "Índice fuera de los límites de la imagen BMP.");
-//        return NULL;
+    // Determinar el tipo de color basándonos en la posición relativa (offset en el píxel)
+    result.color = offset_in_row % 3;
+//    switch (offset_in_row % 3) {
+//        case 0:
+//            result.color = BLUE;
+//            break;
+//        case 1:
+//            result.color = GREEN;
+//            break;
+//        case 2:
+//            result.color = RED;
+//            break;
 //    }
-//
-//    return &bmp->data[data_index];
-//}
 
-
-Pixel* get_pixel_by_index(const BMPImage *bmp, size_t pixel_index) {
-    if (bmp == NULL || bmp->data == NULL) {
-        LOG(ERROR, "BMPImage o datos BMP NULL en get_pixel_by_index.");
-        return NULL;
-    }
-
-    size_t total_pixels = bmp->width * bmp->height;
-    if (pixel_index >= total_pixels) {
-        LOG(ERROR, "Índice de píxel fuera de límites en get_pixel_by_index. Índice: %zu, Total píxeles: %zu", pixel_index, total_pixels);
-        return NULL;
-    }
-
-    size_t row_size = (bmp->width * 3 + 3) & ~3;  // Ajuste para padding
-    size_t pixel_row = pixel_index / bmp->width;  // Fila del píxel (bottom-up)
-    size_t offset_in_row = (pixel_index % bmp->width) * 3;  // Desplazamiento del píxel en la fila
-
-    size_t data_offset = pixel_row * row_size + offset_in_row;
-    if (data_offset + 3 > bmp->data_size) {
-        LOG(ERROR, "Offset de píxel fuera de límites en get_pixel_by_index. Offset: %zu, Data size: %zu", data_offset, bmp->data_size);
-        return NULL;
-    }
-
-    return (Pixel*)(&bmp->data[data_offset]);
+    return result;
 }
-
-
-
-//Pixel* get_pixel_by_index(BMPImage *bmp, size_t pixel_index) {
-//    // Calcular el tamaño real de la fila, sin incluir padding en caso de ser innecesario
-//    size_t row_size = ((bmp->width * 3) % 4 == 0) ? (bmp->width * 3) : ((bmp->width * 3 + 3) & ~3);
-//
-//    size_t pixel_row = pixel_index / bmp->width;          // Fila del píxel
-//    size_t offset_in_row = (pixel_index % bmp->width) * 3;  // Desplazamiento del píxel en la fila
-//
-//    // Retornar un puntero al píxel en bmp_data
-//    return (Pixel*)(&bmp->data[pixel_row * row_size + offset_in_row]);
-//}
-
-
-

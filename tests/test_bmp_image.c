@@ -200,128 +200,136 @@ void test_copy_bmp() {
     LOG(INFO, "Prueba pasada: copy_bmp funciona correctamente.");
 }
 
-void get_pixel_by_index_returns_correct_pixel() {
+/**
+ * @brief Test básico de acceso a componentes de color (azul, verde, rojo).
+ *
+ * Este test verifica que se puedan obtener los componentes de color azul, verde y rojo en
+ * posiciones conocidas dentro de una imagen 2x2, comprobando que `get_component_by_index`
+ * funcione correctamente para el acceso básico.
+ */
+void test_basic_component_access() {
     BMPImage bmp;
     bmp.width = 2;
     bmp.height = 2;
-    bmp.data_size = 16;  // Correcto: 2 filas * row_size=8
-    bmp.data = (unsigned char*)malloc(bmp.data_size);
-    assert(bmp.data != NULL);
-    memset(bmp.data, 0, bmp.data_size); // Inicializar todos los bytes a 0
+    unsigned char pixel_data[] = {
+            0x00, 0x00, 0xFF,   // Azul (Primer píxel)
+            0x00, 0xFF, 0x00,   // Verde (Segundo píxel)
+            0x00, 0x00,         // Padding en Fila 1
+            0xFF, 0x00, 0x00,   // Rojo (Tercer píxel, Fila 2)
+            0x00, 0xFF, 0xFF,   // Cian (Cuarto píxel)
+            0x00, 0x00          // Padding en Fila 2
+    };
+    bmp.data = pixel_data;
+    bmp.data_size = sizeof(pixel_data);
 
-    // Configurar la primera fila (Fila 0: Pixel 0 y Pixel 1)
-    bmp.data[0] = 255; bmp.data[1] = 0; bmp.data[2] = 0;   // Pixel 0 (Blue)
-    bmp.data[3] = 0; bmp.data[4] = 255; bmp.data[5] = 0;   // Pixel 1 (Green)
-    bmp.data[6] = 0; bmp.data[7] = 0;                       // Padding para la primera fila
+    // Componente Azul en el primer píxel (índice 0)
+    Component component = get_component_by_index(&bmp, 0);
+    assert(component.color == BLUE && *component.component_ptr == 0x00);
 
-    // Configurar la segunda fila (Fila 1: Pixel 2 y Pixel 3)
-    bmp.data[8] = 0; bmp.data[9] = 0; bmp.data[10] = 255;   // Pixel 2 (Red)
-    bmp.data[11] = 0; bmp.data[12] = 255; bmp.data[13] = 255; // Pixel 3 (Yellow)
-    bmp.data[14] = 0; bmp.data[15] = 0;                     // Padding para la segunda fila
+    // Componente Verde en el segundo píxel (índice 4)
+    component = get_component_by_index(&bmp, 4);
+    assert(component.color == GREEN && *component.component_ptr == 0xFF);
 
-    // Blue pixel
-    Pixel* pixel = get_pixel_by_index(&bmp, 0);
-    assert(pixel != NULL);
-    assert(pixel->blue == 255);
-    assert(pixel->green == 0);
-    assert(pixel->red == 0);
-
-    // Green pixel
-    pixel = get_pixel_by_index(&bmp, 1);
-    assert(pixel != NULL);
-    assert(pixel->blue == 0);
-    assert(pixel->green == 255);
-    assert(pixel->red == 0);
-
-    // Red pixel
-    pixel = get_pixel_by_index(&bmp, 2);
-    assert(pixel != NULL);
-    assert(pixel->blue == 0);
-    assert(pixel->green == 0);
-    assert(pixel->red == 255);
-
-    // Yellow pixel
-    pixel = get_pixel_by_index(&bmp, 3);
-    assert(pixel != NULL);
-    assert(pixel->blue == 0);
-    assert(pixel->green == 255);
-    assert(pixel->red == 255);
-
-    free(bmp.data);
-}
-
-void get_pixel_by_index_out_of_bounds_returns_null() {
-    BMPImage bmp;
-    bmp.width = 2;
-    bmp.height = 2;
-    bmp.data_size = 16;  // Correcto: 2 filas * row_size=8
-    bmp.data = (unsigned char*)malloc(bmp.data_size);
-    assert(bmp.data != NULL);
-    memset(bmp.data, 0, bmp.data_size); // Inicializar todos los bytes a 0
-
-    // Intentar acceder a un píxel fuera de los límites (pixel_index=4 para 2x2)
-    Pixel* pixel = get_pixel_by_index(&bmp, 4);
-    assert(pixel == NULL);
-
-    free(bmp.data);
-}
-
-void get_component_by_index_returns_correct_component() {
-    BMPImage bmp;
-    bmp.width = 2;
-    bmp.height = 2;
-    bmp.data_size = 16;  // Correcto: 2 filas * row_size=8
-    bmp.data = (unsigned char*)malloc(bmp.data_size);
-    assert(bmp.data != NULL);
-    memset(bmp.data, 0, bmp.data_size); // Inicializar todos los bytes a 0
-
-    // Configurar la primera fila (Fila 0: Pixel 0 y Pixel 1)
-    bmp.data[0] = 255; bmp.data[1] = 0; bmp.data[2] = 0;   // Pixel 0 (Blue)
-    bmp.data[3] = 0; bmp.data[4] = 255; bmp.data[5] = 0;   // Pixel 1 (Green)
-    bmp.data[6] = 0; bmp.data[7] = 0;                       // Padding para la primera fila
-
-    // Configurar la segunda fila (Fila 1: Pixel 2 y Pixel 3)
-    bmp.data[8] = 0; bmp.data[9] = 0; bmp.data[10] = 255;   // Pixel 2 (Red)
-    bmp.data[11] = 0; bmp.data[12] = 255; bmp.data[13] = 255; // Pixel 3 (Yellow)
-    bmp.data[14] = 0; bmp.data[15] = 0;                     // Padding para la segunda fila
-
-    // Verificar componentes
-    // Por ejemplo, verificar el componente verde del Pixel1 (index=4)
-    uint8_t* component = get_component_by_index(&bmp, 4);
-    assert(component != NULL);
-    assert(*component == 255);  // Pixel1 verde
-
-    // Verificar componente azul del Pixel2 (index=8)
+    // Componente Rojo en el tercer píxel (índice 8)
     component = get_component_by_index(&bmp, 8);
-    assert(component != NULL);
-    assert(*component == 255);  // Pixel2 azul
+    assert(component.color == RED && *component.component_ptr == 0x00);
 
-    // Verificar componente rojo del Pixel2 (index=10)
+    // Componente Verde del tercer píxel (índice 9)
+    component = get_component_by_index(&bmp, 9);
+    assert(component.color == BLUE && *component.component_ptr == 0x00);
+
+    // Componente Rojo del tercer píxel (índice 10)
     component = get_component_by_index(&bmp, 10);
-    assert(component != NULL);
-    assert(*component == 255);  // Pixel2 rojo
+    assert(component.color == GREEN && *component.component_ptr == 0xFF);
 
-    // Intentar acceder a un componente fuera de los límites
-    component = get_component_by_index(&bmp, 16);
-    assert(component == NULL);
-
-    free(bmp.data);
+    printf("Test básico de acceso a componentes de color pasado.\n");
 }
 
-void get_component_by_index_out_of_bounds_returns_null() {
+
+/**
+ * @brief Test para índices fuera de límites.
+ *
+ * Este test verifica que `get_component_by_index` maneje adecuadamente un índice que está
+ * fuera de los límites de la imagen, devolviendo un componente inválido.
+ */
+void test_index_out_of_bounds() {
     BMPImage bmp;
     bmp.width = 2;
     bmp.height = 2;
-    bmp.data_size = 16;  // Correcto: 2 filas * row_size=8
-    bmp.data = (unsigned char*)malloc(bmp.data_size);
-    assert(bmp.data != NULL);
-    memset(bmp.data, 0, bmp.data_size); // Inicializar todos los bytes a 0
+    unsigned char pixel_data[] = {
+            0x00, 0x00, 0xFF, 0x00, 0xFF, 0x00, // Fila 1
+            0xFF, 0x00, 0x00, 0x00, 0xFF, 0xFF, // Fila 2
+            0x00, 0x00                          // Padding
+    };
+    bmp.data = pixel_data;
+    bmp.data_size = sizeof(pixel_data);
 
-    // Intentar acceder a un componente fuera de los límites (index=16 para 2x2)
-    uint8_t* component = get_component_by_index(&bmp, 16);
-    assert(component == NULL);
+    size_t total_components = bmp.width * bmp.height * 3;
 
-    free(bmp.data);
+    // Índice fuera de los límites de componentes
+    Component component = get_component_by_index(&bmp, total_components + 1);
+    assert(component.color == INVALID_COLOR && component.component_ptr == NULL);
+
+    printf("Test de índice fuera de límites pasado.\n");
+}
+/*
+ * @brief Test de alineación con filas de padding.
+ *
+ * Este test verifica que `get_component_by_index` maneje adecuadamente el padding en cada
+ * fila de píxeles para imágenes con un ancho que no es múltiplo de 4.
+ */
+void test_alignment_with_padding() {
+    BMPImage bmp;
+    bmp.width = 3;
+    bmp.height = 2;
+    unsigned char pixel_data[] = {
+            0xFF, 0x00, 0x00,  // Rojo
+            0x00, 0xFF, 0x00,  // Verde
+            0x00, 0x00, 0xFF,  // Azul
+            0x00, 0x00, 0x00,  // Cian
+            0x00, 0xFF, 0xFF,  // Cian
+            0xFF, 0xFF, 0x00,  // Amarillo
+            0xFF, 0x00, 0xFF,  // Magenta
+            0x00, 0x00, 0x00,
+    };
+    bmp.data = pixel_data;
+    bmp.data_size = sizeof(pixel_data);
+
+    // Componente Rojo en el primer píxel de la primera fila
+    Component component = get_component_by_index(&bmp, 0);
+    assert(component.color == BLUE && *component.component_ptr == 0xFF);
+
+    // Componente Verde en el primer píxel de la segunda fila
+    component = get_component_by_index(&bmp, 9);  // Primer píxel, segunda fila
+    assert(component.color == BLUE && *component.component_ptr == 0x00);
+
+    // Componente Rojo en el segundo píxel de la segunda fila
+    component = get_component_by_index(&bmp, 10); // Segundo píxel, segunda fila
+    assert(component.color == GREEN && *component.component_ptr == 0xFF);
+
+    printf("Test de alineación con filas de padding pasado.\n");
+}
+
+
+/**
+ * @brief Test para imagen o datos nulos.
+ *
+ * Este test verifica que `get_component_by_index` maneje adecuadamente los casos en que se
+ * pasa una imagen o datos `NULL`, devolviendo un componente inválido.
+ */
+void test_null_image_or_data() {
+    BMPImage *null_bmp = NULL;
+    Component component = get_component_by_index(null_bmp, 0);
+    assert(component.color == INVALID_COLOR && component.component_ptr == NULL);
+
+    BMPImage bmp;
+    bmp.width = 2;
+    bmp.height = 2;
+    bmp.data = NULL;
+    component = get_component_by_index(&bmp, 0);
+    assert(component.color == INVALID_COLOR && component.component_ptr == NULL);
+
+    printf("Test para imagen o datos nulos pasado.\n");
 }
 
 int main() {
@@ -334,14 +342,13 @@ int main() {
     test_read_write_bmp("sample2.bmp");
     test_read_write_bmp("sample3.bmp");
 
-    // padding test
-    get_component_by_index_returns_correct_component();
-    get_component_by_index_out_of_bounds_returns_null();
-    get_pixel_by_index_returns_correct_pixel();
-    get_pixel_by_index_out_of_bounds_returns_null();
-
-    // Pruebas adicionales
+   // Pruebas adicionales
     test_copy_bmp();
+
+    test_basic_component_access();
+    test_index_out_of_bounds();
+    test_alignment_with_padding();
+    test_null_image_or_data();
 
     printf("Todas las pruebas pasaron exitosamente.\n");
     return 0;
