@@ -63,7 +63,7 @@ int parse_arguments(int argc, char *argv[], ProgramOptions *options) {
             {"a",          required_argument, NULL,  'a' },
             {"m",          required_argument, NULL,  'm' },
             {"pass",       required_argument, NULL,  'P' },
-            //{"loglevel",   required_argument, NULL,  'l' },
+            {"loglevel",   required_argument, NULL,  'l' },
             {NULL,            0,                 NULL,   0  }
     };
 
@@ -77,56 +77,54 @@ int parse_arguments(int argc, char *argv[], ProgramOptions *options) {
         switch (opt) {
             case 'e':
                 options->mode = MODE_EMBED;
-                LOG(DEBUG, "Embed mode: %s", operation_mode_to_string(options->mode))
+                LOG(DEBUG, "[arguments] Embed mode: %s", operation_mode_to_string(options->mode))
                 break;
             case 'x':
                 options->mode = MODE_EXTRACT;
-                LOG(DEBUG, "Extract mode: %s", operation_mode_to_string(options->mode))
+                LOG(DEBUG, "[arguments] Extract mode: %s", operation_mode_to_string(options->mode))
                 break;
             case 'i':
                 options->input_file = optarg;
-                LOG(DEBUG, "Input file: %s", options->input_file)
+                LOG(DEBUG, "[arguments] Input file: %s", options->input_file)
                 break;
             case 'p':
                 options->input_bmp_file = optarg;
-                LOG(DEBUG, "Input BMP file: %s", options->input_bmp_file)
+                LOG(DEBUG, "[arguments] Input BMP file: %s", options->input_bmp_file)
                 break;
             case 'o':
                 options->output_file = optarg;
-                LOG(DEBUG, "Output BMP file: %s", options->output_file)
+                LOG(DEBUG, "[arguments] Output BMP file: %s", options->output_file)
                 break;
             case 's':
                 options->steg_algorithm = parse_steg_algorithm(optarg);
-                LOG(DEBUG, "Steganography algorithm: %s", optarg)
+                LOG(DEBUG, "[arguments] Steganography algorithm: %s", optarg)
                 break;
             case 'a':
                 options->encryption_algo = parse_encryption_algorithm(optarg);
-                LOG(DEBUG, "Encryption algorithm: %s", optarg)
+                LOG(DEBUG, "[arguments] Encryption algorithm: %s", optarg)
                 break;
             case 'm':
                 options->encryption_mode = parse_encryption_mode(optarg);
-                LOG(DEBUG, "Encryption mode: %s", optarg)
+                LOG(DEBUG, "[arguments] Encryption mode: %s", optarg)
                 break;
             case 'P':
                 if(strlen(optarg) > MAX_PASSWORD_LENGTH) {
-                    LOG(WARNING, "Password is too long. Used only the first %d characters.", MAX_PASSWORD_LENGTH - 1)
+                    LOG(WARNING, "[arguments] Password is too long. Used only the first %d characters.", MAX_PASSWORD_LENGTH - 1)
                     return 0;
                 }
                 strncpy(options->password, optarg, MAX_PASSWORD_LENGTH - 1);
                 options->password[MAX_PASSWORD_LENGTH - 1] = '\0';
-                LOG(DEBUG, "Password: %s", options->password)
+                LOG(DEBUG, "[arguments] Password: %s", options->password)
                 break;
-//            case 'l':
-//                options->log_level = parse_log_level(optarg);
-//                set_log_level(options->log_level);
-//                LOG(DEBUG, "Log level: %s", optarg)
-//                break;
+            case 'l':
+                // Skip log level argument. Already parsed.
+                break;
             default:
                 print_usage(argv[0]);
                 return 0;
         }
     }
-    LOG(DEBUG, "Parsed command line arguments successfully.")
+    LOG(DEBUG, "[arguments] Parsed command line arguments successfully.")
 
     // Validated required arguments
     if( options->mode == MODE_NONE ||
@@ -150,20 +148,20 @@ int parse_arguments(int argc, char *argv[], ProgramOptions *options) {
     if(strlen(options->password) == 0) {
         options->encryption_algo = ENC_NONE;
         options->encryption_mode = ENC_MODE_NONE;
-        LOG(WARNING, "No password passed. Setting encryption algorithm and mode to none.")
+        LOG(WARNING, "[arguments] No password passed. Setting encryption algorithm and mode to none.")
     }else{
         // Set default values for encryption algorithm and mode, and log level
         if (options->encryption_algo == ENC_NONE) {
             options->encryption_algo = DEFAULT_ENCRYPTION_ALGO;
-            LOG(WARNING, "No encryption algorithm specified. Using default: %s", encryption_algorithm_to_string(DEFAULT_ENCRYPTION_ALGO))
+            LOG(WARNING, "[arguments] No encryption algorithm specified. Using default: %s", encryption_algorithm_to_string(DEFAULT_ENCRYPTION_ALGO))
         }
         if(options->encryption_mode == ENC_MODE_NONE) {
             options->encryption_mode = DEFAULT_ENCRYPTION_MODE;
-            LOG(WARNING, "No encryption mode specified. Using default: %s", encryption_mode_to_string(DEFAULT_ENCRYPTION_MODE))
+            LOG(WARNING, "[arguments] No encryption mode specified. Using default: %s", encryption_mode_to_string(DEFAULT_ENCRYPTION_MODE))
         }
     }
 
-    LOG(DEBUG, "All validations passed.")
+    LOG(DEBUG, "[arguments] All validations passed.")
     return 1;
 }
 
@@ -173,35 +171,37 @@ void log_program_options(const ProgramOptions *options) {
         return;
     }
 
-    LOG(INFO, "Arguments parsed successfully.")
-    LOG(DEBUG, " Program options:\n\tOperation mode: %s", operation_mode_to_string(options->mode))
+    LOG(INFO, "[arguments] Arguments parsed successfully.")
+    LOG(DEBUG, "[arguments] Program options:")
+
+    LOG(DEBUG, "\t |-> Operation mode: %s", operation_mode_to_string(options->mode))
 
     if (options->input_file != NULL) {
-        LOG(DEBUG, "\tInput file: %s", options->input_file)
+        LOG(DEBUG, "\t |-> Input file: %s", options->input_file)
     } else {
-        LOG(DEBUG, "\tInput file: None")
+        LOG(DEBUG, "\t |-> Input file: None")
     }
 
     if (options->input_bmp_file != NULL) {
-        LOG(DEBUG, "\tInput BMP file: %s", options->input_bmp_file)
+        LOG(DEBUG, "\t |-> Input BMP file: %s", options->input_bmp_file)
     } else {
-        LOG(DEBUG, "\tInput BMP file: None")
+        LOG(DEBUG, "\t |-> Input BMP file: None")
     }
 
     if (options->output_file != NULL) {
-        LOG(DEBUG, "\tOutput BMP file: %s", options->output_file)
+        LOG(DEBUG, "\t |-> Output BMP file: %s", options->output_file)
     } else {
-        LOG(DEBUG, "\tOutput BMP file: None")
+        LOG(DEBUG, "\t |-> Output BMP file: None")
     }
 
-    LOG(DEBUG, "\tSteganography algorithm: %s", steg_algorithm_to_string(options->steg_algorithm))
-    LOG(DEBUG, "\tEncryption algorithm: %s", encryption_algorithm_to_string(options->encryption_algo))
-    LOG(DEBUG, "\tEncryption mode: %s", encryption_mode_to_string(options->encryption_mode))
+    LOG(DEBUG, "\t |-> Steganography algorithm: %s", steg_algorithm_to_string(options->steg_algorithm))
+    LOG(DEBUG, "\t |-> Encryption algorithm: %s", encryption_algorithm_to_string(options->encryption_algo))
+    LOG(DEBUG, "\t |-> Encryption mode: %s", encryption_mode_to_string(options->encryption_mode))
 
     if (strlen(options->password) > 0) {
-        LOG(DEBUG, "\tPassword: %s", options->password)
+        LOG(DEBUG, "\t |-> Password: %s", options->password)
     } else {
-        LOG(DEBUG, "\tPassword: None")
+        LOG(DEBUG, "\t |-> Password: None")
     }
 }
 

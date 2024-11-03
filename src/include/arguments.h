@@ -1,4 +1,3 @@
-
 #ifndef STEGOBMP_ARGUMENTS_H
 #define STEGOBMP_ARGUMENTS_H
 
