@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include "../src/include/stego_bmp.h"
-#include "../src/include/types.h"
+#include "../src/include/utils.h"
 #include "test_utils.c"
 
 
@@ -178,7 +178,7 @@ void test_extract_bits_generic_multiple_bits() {
 void test_extract_bits_generic_single_component() {
     BMPImage *bmp = create_test_bmp(1, 1, 0xAA); // 0xAA = 10101010
     assert(bmp != NULL);
-    print_pixel_data(bmp);
+    //print_pixel_data(bmp);
 
     // Extraemos y verificamos
     uint8_t extracted_data = 0x00;
@@ -277,7 +277,7 @@ void test_embed_bits_lsbi_large_pattern() {
     assert(result == true);
 
     // Verificar los primeros 16 bits en componentes verdes y azules
-    print_pixel_data(bmp);
+    //print_pixel_data(bmp);
     unsigned char expected_data[48] = {
             // Primera fila
             0x00, 0x00, 0x00, // Píxel 1
@@ -321,7 +321,7 @@ void test_extract_bits_lsbi_basic() {
     // Embebe los datos
     bool embed_result = embed_bits_lsbi(bmp, data_to_embed, num_bits, &offset);
     assert(embed_result == true);
-    print_pixel_data(bmp);
+    //print_pixel_data(bmp);
 
     // Extraer los datos y compararlos con los datos embebidos
     uint8_t extracted_data[2] = {0x00}; // Inicializar el buffer de extracción
@@ -350,7 +350,7 @@ void test_extract_pattern_lsbi(){
     // Embebe los datos
     bool embed_result = embed_bits_lsbi(bmp, data_to_embed, num_bits, &offset);
     assert(embed_result == true);
-    print_pixel_data(bmp);
+    //print_pixel_data(bmp);
 
 
     uint8_t  pattern_map = 0;
@@ -380,7 +380,7 @@ void test_extract_data_size() {
     unsigned int size_to_embed = 9999;
     bool embed_result = embed_bits_lsb1(bmp, (const uint8_t *) &size_to_embed, 32, &offset);
     assert(embed_result == true);
-    print_pixel_data(bmp);
+    //print_pixel_data(bmp);
 
     // Reiniciar offset y extraer el tamaño
     offset = 0;
@@ -575,88 +575,45 @@ void test_embed_message_lsb1() {
    create_file_from_package("../resources/test_files/OUTPUT", file);
 
 }
-/**
- * @brief Prueba de conversión de endian para datos de 4 bytes.
- */
-void test_format_data_endian_4bytes() {
-    uint8_t data_big_endian[4] = {0x12, 0x34, 0x56, 0x78};
-    uint8_t expected_little_endian[4] = {0x78, 0x56, 0x34, 0x12};
 
-    //print_buffer(data_big_endian, 4);
-    adjust_data_endianness(data_big_endian, 4);
-    //print_buffer(data_big_endian, 4);
-
-    if (IS_SYSTEM_BIG_ENDIAN()) {
-        // En big-endian, los datos no deben cambiar
-        assert(data_big_endian[0] == 0x12 && data_big_endian[1] == 0x34);
-        assert(data_big_endian[2] == 0x56 && data_big_endian[3] == 0x78);
-    } else {
-        // En little-endian, los datos deben igualar al valor esperado
-        for (size_t i = 0; i < 4; i++) {
-            assert(data_big_endian[i] == expected_little_endian[i]);
-        }
-    }
-}
-
-/**
- * @brief Prueba de conversión de endian para datos de 2 bytes.
- */
-void test_format_data_endian_2bytes() {
-    uint8_t data_big_endian[2] = {0xAB, 0xCD};
-
-    //print_buffer(data_big_endian, 2);
-    adjust_data_endianness(data_big_endian, 2);
-    //print_buffer(data_big_endian, 2);
-
-    if (IS_SYSTEM_BIG_ENDIAN()) {
-        // En big-endian, los datos no deben cambiar
-        assert(data_big_endian[0] == 0xAB && data_big_endian[1] == 0xCD);
-    } else {
-        // En little-endian, los datos deben igualar al valor esperado
-        assert(data_big_endian[0] == 0xCD && data_big_endian[1] == 0xAB);
-    }
-}
 
 int main() {
-    set_log_level(DEBUG);
+    set_log_level(NONE);
 
-//    test_embed_bits_generic_basic();
-//    test_embed_bits_generic_multiple_bits();
-//    test_embed_bits_generic_overflow();
-//    test_embed_bits_generic_single_component();
+    test_embed_bits_generic_basic();
+    test_embed_bits_generic_multiple_bits();
+    test_embed_bits_generic_overflow();
+    test_embed_bits_generic_single_component();
 
-//    test_extract_bits_generic_basic();
-//    test_extract_bits_generic_multiple_bits();
-//    test_extract_bits_generic_single_component();
-//    test_extract_bits_generic_overflow();
+    test_extract_bits_generic_basic();
+    test_extract_bits_generic_multiple_bits();
+    test_extract_bits_generic_single_component();
+    test_extract_bits_generic_overflow();
 
-//    test_check_capacity_lsb1();
-//    test_check_capacity_lsb4();
-//    test_check_capacity_lsbi();
+    test_check_capacity_lsb1();
+    test_check_capacity_lsb4();
+    test_check_capacity_lsbi();
 
-//    test_embed_bits_lsbi_large_pattern();
+    test_embed_bits_lsbi_large_pattern();
 
-//    test_extract_bits_lsbi_basic();
-    //test_extract_pattern_lsbi();
-    //test_extract_bits_lsbi();
+    test_extract_bits_lsbi_basic();
+    test_extract_pattern_lsbi();
+    test_extract_bits_lsbi();
 
-//    test_extract_data_size();
-//    test_extract_size_lsb1();
-//    test_extract_size_lsb4();
-//    test_extract_bits_lsbi();
+    test_extract_data_size();
+    test_extract_size_lsb1();
+    test_extract_size_lsb4();
+    test_extract_bits_lsbi();
 
-//    test_extract_extension_lsb1();
-//    test_extract_extension_lsb4();
-//    test_extract_extension_lsbi();
+    test_extract_extension_lsb1();
+    test_extract_extension_lsb4();
+    test_extract_extension_lsbi();
 
-//    test_extract_file_lsb1();
-//    test_extract_file_lsb4();
-//    test_extract_file_lsbi();
+    test_extract_file_lsb1();
+    test_extract_file_lsb4();
+    test_extract_file_lsbi();
 
     test_embed_message_lsb1();
-
-//    test_format_data_endian_4bytes();
-//    test_format_data_endian_2bytes();
 
     printf("Todos los tests pasaron exitosamente.\n");
     return 0;

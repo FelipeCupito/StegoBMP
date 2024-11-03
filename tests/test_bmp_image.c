@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <assert.h>
 #include "../src/include/bmp_image.h"
-
-#define IMG_BASE_PATH "../resources/test_images/"
+#include "../src/include/utils.h"
+#include "test_utils.c"
 
 
 /**
@@ -21,12 +21,12 @@ void test_read_bmp_file() {
     // Check the width and height
     assert(bmp->width == 2);
     assert(bmp->height == 2);
-    LOG(INFO, "Width and height are correct.");
+    LOG(INFO, "Width and height are correct.")
 
     // Check the data size: 2 (width) * 3 (bytes per pixel) + 2 (padding) = 8 bytes per row, total 16 bytes
     int expected_data_size = 8 * 2;
     assert(bmp->data_size == expected_data_size);
-    LOG(INFO, "Data size is correct.");
+    LOG(INFO, "Data size is correct.")
 
     // Check pixel values
     // The pixel data starts from bottom-left corner, as BMPs are stored bottom-up
@@ -42,12 +42,12 @@ void test_read_bmp_file() {
     for (size_t i = 0; i < bmp->data_size; i++) {
         assert(bmp->data[i] == expected_pixel_data[i]);
     }
-    LOG(INFO, "Pixel data is correct.");
+    LOG(INFO, "Pixel data is correct.")
 
     // Free memory
     free_bmp(bmp);
 
-    LOG(INFO, "Test passed: new_bmp_file works correctly with the 2x2 BMP file.");
+    LOG(INFO, "Test passed: new_bmp_file works correctly with the 2x2 BMP file.")
 }
 
 /**
@@ -89,7 +89,7 @@ void test_save_bmp_file() {
     // Step 2: Save the BMP using save_bmp_file
     int save_result = save_bmp_file(output_image_file, &bmp);
     assert(save_result == 0);
-    LOG(INFO, "BMP file saved successfully.");
+    LOG(INFO, "BMP file saved successfully.")
 
     // Step 3: Open the file manually and verify the contents
     FILE *file = fopen(output_image_file, "rb");
@@ -101,7 +101,7 @@ void test_save_bmp_file() {
     for (int i = 0; i < BMP_HEADER_SIZE; i++) {
         assert(read_header[i] == bmp.header[i]);
     }
-    LOG(INFO, "BMP headers match.");
+    LOG(INFO, "BMP headers match.")
 
     // Read and verify the pixel data
     unsigned char read_pixel_data[sizeof(pixel_data)];
@@ -109,12 +109,12 @@ void test_save_bmp_file() {
     for (size_t i = 0; i < bmp.data_size; i++) {
         assert(read_pixel_data[i] == bmp.data[i]);
     }
-    LOG(INFO, "Pixel data matches.");
+    LOG(INFO, "Pixel data matches.")
 
     // Clean up
     fclose(file);
 
-    LOG(INFO, "Unit test passed: save_bmp_file works correctly.");
+    LOG(INFO, "Unit test passed: save_bmp_file works correctly.")
 }
 
 /**

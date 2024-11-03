@@ -4,6 +4,8 @@
 #include "bmp_image.h"
 #include "logger.h"
 
+#define IMG_BASE_PATH "../resources/test_files/"
+
 /**
  * @brief Crea una imagen BMP de prueba con dimensiones específicas.
  *

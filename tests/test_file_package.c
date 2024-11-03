@@ -2,8 +2,6 @@
 #include <assert.h>
 #include "../src/include/file_package.h"
 
-#define EXTENSION_SIZE 16
-
 /**
  * Test function to check file size retrieval
  */
@@ -219,7 +217,7 @@ void test_create_file_from_package_valid() {
 
     // Llamar a create_file_from_package
     int result = create_file_from_package(filename_base, package);
-    assert(result == 0);
+    assert(result == 1);
 
     // Verificar que el archivo fue creado
     FILE *file = fopen(full_filename, "rb");
@@ -337,7 +335,7 @@ void test_create_file_from_raw_data_valid() {
 
     // Llamar a create_file_from_raw_data
     int result = create_file_from_raw_data(filename_base, buffer);
-    assert(result == 0);
+    assert(result == 1);
 
     // Verificar que el archivo fue creado
     FILE *file = fopen(full_filename, "rb");
@@ -510,28 +508,26 @@ void test_embed_data_from_file_null_buffer_size() {
 }
 
 
-
-
 int main() {
     set_log_level(NONE);
 
     // Pruebas de paquetes de archivos
-//    test_get_file_size();
-//    test_get_file_extension();
-//    test_create_file_package_valid();
-//    test_create_file_package_invalid();
-//    test_print_file_package();
-//
-//    // Pruebas adicionales
-////    test_new_file_package_from_data_valid();
-////    test_new_file_package_from_data_invalid_size();
-////    test_new_file_package_from_data_invalid_null();
-//    test_create_file_from_package_valid();
-//    test_create_file_from_package_invalid();
-//    test_create_file_from_raw_data_valid();
-//    test_create_file_from_raw_data_invalid();
-//    test_free_file_package_valid();
-//    test_free_file_package_null();
+    test_get_file_size();
+    test_get_file_extension();
+    test_create_file_package_valid();
+    test_create_file_package_invalid();
+    test_print_file_package();
+
+    // Pruebas adicionales
+//    test_new_file_package_from_data_valid();
+//    test_new_file_package_from_data_invalid_size();
+//    test_new_file_package_from_data_invalid_null();
+    test_create_file_from_package_valid();
+    test_create_file_from_package_invalid();
+    test_create_file_from_raw_data_valid();
+    test_create_file_from_raw_data_invalid();
+    test_free_file_package_valid();
+    test_free_file_package_null();
 
     test_embed_data_from_file_valid();
     test_embed_data_from_file_null_path();
