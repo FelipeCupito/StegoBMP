@@ -84,13 +84,13 @@ uint8_t* embed_data_from_file(const char *file_path, size_t *buffer_size) {
     }
 
     // Get file size
-    size_t file_size = get_file_size(file);
+    uint32_t file_size = get_file_size(file);
     if (file_size == 0) {
         LOG(ERROR, "Could not get the file size.")
         fclose(file);
         return NULL;
     }
-    LOG(DEBUG, "[File] File size: %lu bytes.", file_size)
+    LOG(DEBUG, "[File] File size: %u bytes.", file_size)
 
     // Allocate memory for the file data
     uint8_t *buffer = (uint8_t *)malloc( sizeof(uint32_t) + file_size + EXTENSION_SIZE);
@@ -101,8 +101,13 @@ uint8_t* embed_data_from_file(const char *file_path, size_t *buffer_size) {
     }
 
     // set the size of the file
-    adjust_data_endianness(&buffer[buffer_index], (uint32_t)file_size);
+    //adjust_data_endianness((uint8_t *)&file_size, sizeof(file_size));
+    adjust_data_endianness((uint8_t *) &file_size);
+    LOG(DEBUG, "file size %d", (uint32_t)file_size)
+
+    buffer[buffer_index]  = (uint32_t) file_size;
     buffer_index += sizeof(uint32_t);
+    LOG(DEBUG, "file size %d", (uint32_t)buffer[0])
 
     // Read the file data
     if (fread(&buffer[buffer_index], 1, file_size, file) != file_size){
@@ -142,6 +147,7 @@ FilePackage *new_file_package_from_data(const uint8_t *data){
         LOG(ERROR, "Invalid data pointer.")
         return NULL;
     }
+    size_t data_index = 0;
 
     // Asignar memoria para la estructura FilePackage
     FilePackage *file = (FilePackage *)malloc(sizeof(FilePackage));
@@ -151,27 +157,31 @@ FilePackage *new_file_package_from_data(const uint8_t *data){
     }
 
     // Extraer el tamaño de los datos (los primeros 4 bytes)
-    file->size = *(int *)&data[0];
+    file->size = *(uint32_t *)&data[data_index];
+    data_index += sizeof(uint32_t);
     if (file->size <= 0) {
         LOG(ERROR, "Invalid file data size: %u bytes.", file->size)
         free(file);
         return NULL;
     }
+    adjust_data_endianness((uint8_t *) &file->size);
+    LOG(INFO, "[File] File size: %u bytes.", file->size)
+
 
     // Asignar memoria para los datos del archivo y copiarlos
     file->data = (unsigned char *)malloc(file->size);
     if (file->data == NULL) {
-        LOG(ERROR, "Could not allocate memory for file data.")
+        LOG(ERROR, "[File] Could not allocate memory for file data.")
         free(file);
         return NULL;
     }
-    memcpy(file->data, data + sizeof(int), file->size); // Reemplazado memccpy por memcpy
+    memcpy(file->data, &data[data_index], file->size);
+    data_index += file->size;
 
     // Extraer la extensión del archivo
     char extension[EXTENSION_SIZE] = {0};
-    // Leer desde data + sizeof(int) + file->size
     for (int i = 0; i < EXTENSION_SIZE - 1; i++) { // Reservar espacio para '\0'
-        extension[i] = (char)data[sizeof(int) + file->size + i];
+        extension[i] = (char)data[data_index + i];
         if(extension[i] == '\0'){
             break;
         }
@@ -218,7 +228,12 @@ uint8_t* create_data_buffer(const FilePackage *package, size_t *buffer_size) {
     size_t offset = 0;
 
     // Convertir el tamaño a big-endian o little-endian según sea necesario
-    format_data_endian((uint32_t)package->size, &buffer[offset]);
+    //format_data_endian((uint32_t)package->size, &buffer[offset]);
+    buffer[offset] = (uint32_t)package->size;
+    LOG(DEBUG, "Tamaño del archivo antes: %u bytes.", buffer[offset])
+    adjust_data_endianness(&buffer[offset]);
+    LOG(DEBUG, "Tamaño del archivo despues: %u bytes.", buffer[offset])
+
     offset += sizeof(uint32_t);
     LOG(DEBUG, "Tamaño del archivo: %u bytes.", buffer[offset])
 
