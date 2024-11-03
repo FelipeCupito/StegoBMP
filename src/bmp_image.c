@@ -203,7 +203,7 @@ Component get_component_by_index(const BMPImage *bmp, size_t index) {
     Component result = {NULL, INVALID_COLOR};
 
     if (bmp == NULL || bmp->data == NULL) {
-        LOG(ERROR, "BMPImage o datos BMP NULL en get_component_by_index.");
+        LOG(ERROR, "BMPImage o datos BMP NULL en get_component_by_index.")
         return result;
     }
 
@@ -211,7 +211,7 @@ Component get_component_by_index(const BMPImage *bmp, size_t index) {
     size_t total_components = bmp->width * bmp->height * 3;
 
     if (index >= total_components) {
-        LOG(ERROR, "Índice fuera de límites en get_component_by_index. Índice: %zu, Total componentes: %zu", index, total_components);
+        LOG(ERROR, "Índice fuera de límites en get_component_by_index. Índice: %zu, Total componentes: %zu", index, total_components)
         return result;
     }
 
