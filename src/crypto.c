@@ -52,13 +52,14 @@ const EVP_CIPHER* determine_cipher(EncryptionAlgorithm encryption, EncryptionMod
         case ENC_3DES:
             switch (mode) {
                 case ENC_MODE_ECB:
-                    return EVP_des_ecb();
+                    return EVP_des_ede3_ecb();
                 case ENC_MODE_CFB:
                     return EVP_des_ede3_cfb8();
                 case ENC_MODE_OFB:
-                    return EVP_des_ofb();
+                    LOG(INFO, "[Crypto] Using DES OFB mode.")
+                    return EVP_des_ede3_ofb();
                 case ENC_MODE_CBC:
-                    return EVP_des_cbc();
+                    return EVP_des_ede3_cbc();
                 default:
                     return NULL;
             }
@@ -68,18 +69,6 @@ const EVP_CIPHER* determine_cipher(EncryptionAlgorithm encryption, EncryptionMod
     }
 }
 
-/**
- * @brief Maneja errores de OpenSSL.
- *
- * @param msg Mensaje de error a mostrar.
- */
-void handle_openssl_error(const char *msg) {
-    fprintf(stderr, "%s\n", msg);
-    ERR_print_errors_fp(stderr);
-    exit(EXIT_FAILURE);
-}
-
-//TOD0: revisar si size y encrypted_size pueden ser el mismo argumento
 uint8_t* crypto_encrypt(const uint8_t *data, size_t size, EncryptionAlgorithm encryption, EncryptionMode mode, const char *password, size_t *encrypted_size) {
     if (!data || size == 0 || !password || !encrypted_size) {
         LOG(ERROR, "Invalid arguments to crypto_encrypt.")
@@ -94,7 +83,8 @@ uint8_t* crypto_encrypt(const uint8_t *data, size_t size, EncryptionAlgorithm en
 
     EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
     if (!ctx) {
-        handle_openssl_error("Failed to create EVP_CIPHER_CTX.");
+        LOG(ERROR, "Failed to create EVP_CIPHER_CTX.");
+        ERR_print_errors_fp(stderr);
     }
 
     // Generar clave e IV usando PBKDF2
@@ -111,7 +101,9 @@ uint8_t* crypto_encrypt(const uint8_t *data, size_t size, EncryptionAlgorithm en
     // Sal (salt) fija de 8 bytes (puedes mejorar esto usando una sal aleatoria)
     unsigned char salt[8] = {0};
     if (!PKCS5_PBKDF2_HMAC((const char *)password, strlen((const char *)password), salt, sizeof(salt), 10000, EVP_sha256(), total_len, key_iv)) {
-        handle_openssl_error("PKCS5_PBKDF2_HMAC failed.");
+        //handle_openssl_error("PKCS5_PBKDF2_HMAC failed.");
+        LOG(ERROR, "PKCS5_PBKDF2_HMAC failed.")
+        ERR_print_errors_fp(stderr);
     }
 
     unsigned char *key = key_iv;
@@ -119,10 +111,9 @@ uint8_t* crypto_encrypt(const uint8_t *data, size_t size, EncryptionAlgorithm en
 
     // Inicializar la encriptación
     if (EVP_EncryptInit_ex(ctx, cipher, NULL, key, iv) != 1) {
-        handle_openssl_error("EVP_EncryptInit_ex failed.");
+        LOG(ERROR, "EVP_EncryptInit_ex failed.")
     }
 
-    //TODO: no se que es lo agrego gpt, revisar que es
     // EVP_CIPHER_CTX_set_padding(ctx, 0);
 
     // Asignar memoria para el ciphertext (size + block_size)
@@ -141,13 +132,13 @@ uint8_t* crypto_encrypt(const uint8_t *data, size_t size, EncryptionAlgorithm en
 
     // Encriptar los datos
     if (EVP_EncryptUpdate(ctx, ciphertext, &len, data, size) != 1) {
-        handle_openssl_error("EVP_EncryptUpdate failed.");
+        LOG(ERROR, "EVP_EncryptUpdate failed.");
     }
     ciphertext_len += len;
 
     // Finalizar la encriptación
     if (EVP_EncryptFinal_ex(ctx, ciphertext + ciphertext_len, &len) != 1) {
-        handle_openssl_error("EVP_EncryptFinal_ex failed.");
+        LOG(ERROR, "EVP_EncryptFinal_ex failed.");
     }
     ciphertext_len += len;
 
@@ -173,7 +164,8 @@ uint8_t* crypto_decrypt(const uint8_t *encrypted_data, size_t encrypted_size, En
 
     EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
     if (!ctx) {
-        handle_openssl_error("Failed to create EVP_CIPHER_CTX.");
+        LOG(ERROR, "Failed to create EVP_CIPHER_CTX.")
+        ERR_print_errors_fp(stderr);
     }
 
     // Generar clave e IV usando PBKDF2 (debe ser el mismo que en la encriptación)
@@ -190,7 +182,7 @@ uint8_t* crypto_decrypt(const uint8_t *encrypted_data, size_t encrypted_size, En
     // Sal (salt) fija de 8 bytes (debe ser la misma que en la encriptación)
     unsigned char salt[8] = {0};
     if (!PKCS5_PBKDF2_HMAC((const char *)password, strlen((const char *)password), salt, sizeof(salt), 10000, EVP_sha256(), total_len, key_iv)) {
-        handle_openssl_error("PKCS5_PBKDF2_HMAC failed.");
+        LOG(ERROR, "PKCS5_PBKDF2_HMAC failed.");
     }
 
     unsigned char *key = key_iv;
@@ -198,11 +190,12 @@ uint8_t* crypto_decrypt(const uint8_t *encrypted_data, size_t encrypted_size, En
 
     // Inicializar la desencriptación
     if (EVP_DecryptInit_ex(ctx, cipher, NULL, key, iv) != 1) {
-        handle_openssl_error("EVP_DecryptInit_ex failed.");
+        LOG(ERROR, "EVP_DecryptInit_ex failed.")
+        ERR_print_errors_fp(stderr);
     }
 
     // Opcional: Deshabilitar padding si no es necesario
-    // EVP_CIPHER_CTX_set_padding(ctx, 0);
+     EVP_CIPHER_CTX_set_padding(ctx, 0);
 
     // Asignar memoria para el plaintext (encrypted_size)
     unsigned char *plaintext = malloc(encrypted_size);
@@ -218,15 +211,19 @@ uint8_t* crypto_decrypt(const uint8_t *encrypted_data, size_t encrypted_size, En
 
     // Desencriptar los datos
     if (EVP_DecryptUpdate(ctx, plaintext, &len, encrypted_data, encrypted_size) != 1) {
-        handle_openssl_error("EVP_DecryptUpdate failed.");
+        LOG(ERROR, "EVP_DecryptUpdate failed.")
+        ERR_print_errors_fp(stderr);
     }
     plaintext_len += len;
 
+
     // Finalizar la desencriptación
     if (EVP_DecryptFinal_ex(ctx, plaintext + plaintext_len, &len) != 1) {
-        handle_openssl_error("EVP_DecryptFinal_ex failed.");
+        LOG(ERROR, "EVP_DecryptFinal_ex failed.")
+        ERR_print_errors_fp(stderr);
     }
     plaintext_len += len;
+
 
     // Limpiar
     EVP_CIPHER_CTX_free(ctx);
