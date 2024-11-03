@@ -51,7 +51,7 @@ static const StegOperations steg_operations[] = {
  */
 bool embed_bits_generic(BMPImage *bmp, const uint8_t *data, size_t num_bits, size_t *offset, int bits_per_component);
 bool extract_bits_generic(const BMPImage *bmp, size_t num_bits, uint8_t *buffer, size_t *offset, int bits_per_component);
-void format_data_endian(uint8_t *data, size_t size);
+void adjust_data_endianness(uint8_t * buffer, uint32_t size);
 size_t extract_data_size(const BMPImage *bmp, StegAlgorithm steg_alg, size_t *offset, void *context);
 bool extract_extension(const BMPImage *bmp, StegAlgorithm steg_alg, char *ext_buffer, size_t *offset, void *context);
 /****************************************
@@ -282,7 +282,7 @@ bool embed_bits_lsbi(BMPImage *bmp, const uint8_t *data, size_t num_bits, size_t
             pattern_map |= (1 << p);
         }
     }
-    LOG(INFO, "Pattern Map: %d%d%d%d%d%d%d%d",
+    LOG(INFO, "[Stego Embed] Pattern Map: %d%d%d%d%d%d%d%d",
         (pattern_map >> 7) & 0x01,
         (pattern_map >> 6) & 0x01,
         (pattern_map >> 5) & 0x01,
@@ -337,7 +337,7 @@ bool embed_bits_lsbi(BMPImage *bmp, const uint8_t *data, size_t num_bits, size_t
  */
 bool extract_bits_lsbi(const BMPImage *bmp, size_t num_bits, uint8_t *buffer, size_t *offset, void *context) {
     if (bmp == NULL || bmp->data == NULL || buffer == NULL || offset == NULL || context == NULL) {
-        LOG(ERROR, "Argumentos NULL en extract_bits_lsbi.");
+        LOG(ERROR, "Argumentos NULL en extract_bits_lsbi.")
         return false;
     }
 
@@ -348,7 +348,7 @@ bool extract_bits_lsbi(const BMPImage *bmp, size_t num_bits, uint8_t *buffer, si
     size_t component_index = *offset;
     size_t bit_extracted_count = 0;
     uint8_t pattern_map = *((uint8_t *)context) >> 4; // Mover a los 4 bits más significativos
-//    LOG(INFO, "Pattern Map: %d%d%d%d%d%d%d%d",
+//    LOG(INFO, "[Stego Extract] Pattern Map: %d%d%d%d%d%d%d%d",
 //        (pattern_map >> 7) & 0x01,
 //        (pattern_map >> 6) & 0x01,
 //        (pattern_map >> 5) & 0x01,
@@ -371,7 +371,7 @@ bool extract_bits_lsbi(const BMPImage *bmp, size_t num_bits, uint8_t *buffer, si
 
         // Verificar si este patrón fue invertido usando el pattern_map
         if ((pattern_map & (1 << pattern)) != 0) {  // Aseguramos solo invertir si el patrón está activado
-            //LOG(DEBUG, "Inverting bit for component %zu, pattern: %02X, original: %02X", component_index, pattern, component);
+            //LOG(DEBUG, "[Stego Extract] Inverting bit for component %zu, pattern: %02X, original: %02X", component_index, pattern, component);
             component ^= 0x01; // Invertir el LSB
         }
         // Extraer el LSB y almacenar en el buffer de bits
@@ -445,20 +445,28 @@ bool check_capacity_lsbi(const BMPImage *bmp, size_t num_bits) {
 }
 
 /**
- * @brief Convierte los datos de un buffer a la representación endian correcta.
+ * @brief Ajusta la representación endian de un valor de 32 bits y lo almacena en un buffer.
  *
- * @param data       Puntero a los datos extraídos.
- * @param size       Tamaño de los datos en bytes.
+ * @param buffer    Puntero al buffer donde se almacenará el valor convertido en formato endian.
+ *                  El buffer debe tener al menos 4 bytes.
+ * @param size      El valor de 32 bits a convertir según el endianess.
  */
-void format_data_endian(uint8_t *data, size_t size) {
+void adjust_data_endianness(uint8_t * buffer, uint32_t size) {
     if (IS_SYSTEM_BIG_ENDIAN() != IS_DATA_BIG_ENDIAN) {
-        LOG(DEBUG, "Your system is %s-endian, data is %s-endian. Converting data endian.",
-            IS_SYSTEM_BIG_ENDIAN() ? "big" : "little", IS_DATA_BIG_ENDIAN ? "big" : "little")
-        for (size_t i = 0; i < size / 2; i++) {
-            uint8_t temp = data[i];
-            data[i] = data[size - i - 1];
-            data[size - i - 1] = temp;
-        }
+        LOG(DEBUG, "[Stego Extract] Conversion necesaria: datos almacenados en %s-endian, sistema en %s-endian.",
+            IS_DATA_BIG_ENDIAN ? "big" : "little",
+            IS_SYSTEM_BIG_ENDIAN() ? "big" : "little")
+        buffer[3] = (size >> 24) & 0xFF;
+        buffer[2] = (size >> 16) & 0xFF;
+        buffer[1] = (size >> 8) & 0xFF;
+        buffer[0] = size & 0xFF;
+
+    }else{
+        LOG(DEBUG, "[Stego Extract] No se requiere conversion: datos y sistema comparten endianess.")
+        buffer[0] = (size >> 24) & 0xFF;
+        buffer[1] = (size >> 16) & 0xFF;
+        buffer[2] = (size >> 8) & 0xFF;
+        buffer[3] = size & 0xFF;
     }
 }
 
@@ -478,19 +486,20 @@ size_t extract_data_size(const BMPImage *bmp, StegAlgorithm steg_alg, size_t *of
         return 0;
     }
 
+    // Extraer el tamaño de los datos ocultos
     uint32_t extracted_size = 0;
     if (!steg_operations[steg_alg].extract(bmp, HIDDEN_DATA_SIZE_FIELD, (uint8_t *)&extracted_size, offset, context)) {
         LOG(ERROR, "Error al extraer el tamaño de los datos.")
         return 0;
     }
 
-    // Convertir el valor si es necesario
-    format_data_endian((uint8_t *)&extracted_size, sizeof(extracted_size));
+    // Ajustar el endianness del tamaño extraído
+    uint32_t temp = extracted_size;
+    adjust_data_endianness((uint8_t *) &extracted_size, temp);
 
-    LOG(INFO, "Tamaño de datos extraído: %u", extracted_size)
+    LOG(INFO, "[Stego Extract] Tamaño de datos extraído: %u", extracted_size)
     return extracted_size;
 }
-
 
 /**
  * @brief Extrae la extensión del archivo embebido en la imagen BMP.
@@ -557,6 +566,7 @@ bool embed(BMPImage *bmp, const uint8_t *secret_data, size_t secret_size, StegAl
         LOG(ERROR, "Error al embeber datos con el algoritmo especificado.")
         return false;
     }
+    LOG(INFO, "[Stego Embed] Datos embebidos correctamente.")
 
     return true;
 }
@@ -587,7 +597,7 @@ FilePackage* extract_data(const BMPImage *bmp, StegAlgorithm steg_alg) {
             free_file_package(package);
             return NULL;
         }
-        LOG(DEBUG, "Patron obtenido: %d%d%d%d%d%d%d%d",
+        LOG(DEBUG, "[Stego Extract] Patron obtenido: %d%d%d%d%d%d%d%d",
             (pattern_map >> 7) & 0x01,
             (pattern_map >> 6) & 0x01,
             (pattern_map >> 5) & 0x01,
@@ -605,7 +615,7 @@ FilePackage* extract_data(const BMPImage *bmp, StegAlgorithm steg_alg) {
         free_file_package(package);
         return NULL;
     }
-    LOG(INFO, "Tamaño de los datos extraídos: %u bytes.", package->size)
+    LOG(INFO, "[Stego Extract] Tamaño de los datos extraídos: %u bytes.", package->size)
 
     // Extraer los datos del archivo
     package->data = (uint8_t *)malloc(package->size);
@@ -632,7 +642,7 @@ FilePackage* extract_data(const BMPImage *bmp, StegAlgorithm steg_alg) {
         free_file_package(package);
         return NULL;
     }
-    LOG(INFO, "Extensión extraída: %s.", package->extension)
+    LOG(INFO, "[Stego Extract] Extensión extraída: %s.", package->extension)
 
     return package;
 }
@@ -655,7 +665,7 @@ uint8_t* extract_encrypted_data(const BMPImage *bmp, StegAlgorithm steg_alg, siz
             LOG(ERROR, "Error al extraer pattern_map con LSB1 en extract_encrypted_data.")
             return NULL;
         }
-        LOG(INFO, "Pattern Map: %02X", pattern_map)
+        LOG(INFO, "[Stego Extract] Pattern Map: %02X", pattern_map)
     }
 
     // Extraer el tamaño cifrado (4 bytes)
@@ -669,7 +679,7 @@ uint8_t* extract_encrypted_data(const BMPImage *bmp, StegAlgorithm steg_alg, siz
         LOG(ERROR, "Tamaño cifrado inválido: %u bytes.", encrypted_size)
         return NULL;
     }
-    LOG(INFO, "Tamaño de los datos cifrados: %u bytes.", encrypted_size)
+    LOG(INFO, "[Stego Extract] Tamaño de los datos cifrados: %u bytes.", encrypted_size)
 
     // Extraer los datos cifrados
     size_t data_bits = BYTES_TO_BITS(encrypted_size);
@@ -683,7 +693,7 @@ uint8_t* extract_encrypted_data(const BMPImage *bmp, StegAlgorithm steg_alg, siz
         free(encrypted_data);
         return NULL;
     }
-    LOG(INFO, "Datos cifrados extraídos correctamente.")
+    LOG(INFO, "[Stego Extract] Datos cifrados extraídos correctamente.")
 
     *extracted_size = encrypted_size;
     return encrypted_data;

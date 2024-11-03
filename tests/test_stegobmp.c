@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include "../src/include/stego_bmp.h"
+#include "../src/include/types.h"
 #include "test_utils.c"
 
 
@@ -331,7 +332,7 @@ void test_extract_bits_lsbi_basic() {
 
     // Verificar que los datos extraídos coincidan con los embebidos
     for (size_t i = 0; i < sizeof(data_to_embed); i++) {
-        LOG(INFO, "Extraído: %02X, Esperado: %02X", extracted_data[i], data_to_embed[i]);
+        LOG(INFO, "Extraído: %02X, Esperado: %02X", extracted_data[i], data_to_embed[i])
         assert(extracted_data[i] == data_to_embed[i]);
     }
     free_bmp(bmp);
@@ -384,12 +385,12 @@ void test_extract_data_size() {
     // Reiniciar offset y extraer el tamaño
     offset = 0;
     uint32_t extracted_size = extract_data_size(bmp, STEG_LSB1, &offset, NULL); // Pasar NULL para context
-    LOG(INFO, "Extraído: %u, Esperado: 9999", extracted_size);
+    LOG(INFO, "Extraído: %u, Esperado: 9999", extracted_size)
     free_bmp(bmp);
 }
 
 void test_extract_size_lsb1() {
-    BMPImage *bmp = new_bmp_file("../resources/test_images/ladoLSB1.bmp");
+    BMPImage *bmp = new_bmp_file("../resources/test_files/ladoLSB1.bmp");
     assert(bmp != NULL);
 
     size_t offset = 0;
@@ -399,7 +400,7 @@ void test_extract_size_lsb1() {
 }
 
 void test_extract_size_lsb4() {
-    BMPImage *bmp = new_bmp_file("../resources/test_images/ladoLSB4.bmp");
+    BMPImage *bmp = new_bmp_file("../resources/test_files/ladoLSB4.bmp");
     assert(bmp != NULL);
 
     size_t offset = 0;
@@ -425,7 +426,7 @@ void test_extract_size_lsb4() {
 }
 
 void test_extract_bits_lsbi(){
-    BMPImage *bmp = new_bmp_file("../resources/test_images/ladoLSBI.bmp");
+    BMPImage *bmp = new_bmp_file("../resources/test_files/ladoLSBI.bmp");
     assert(bmp != NULL);
 
     uint8_t pattern_map = 0;
@@ -506,7 +507,7 @@ void test_extract_extension_lsbi() {
 }
 
 void test_extract_file_lsb1(){
-    BMPImage *bmp = new_bmp_file("../resources/test_images/ladoLSB1.bmp");
+    BMPImage *bmp = new_bmp_file("../resources/test_files/ladoLSB1.bmp");
     assert(bmp != NULL);
 
     FilePackage *package = extract_data(bmp, STEG_LSB1);
@@ -516,13 +517,13 @@ void test_extract_file_lsb1(){
         return;
     }
 
-    create_file_from_package("../resources/test_images/OUTPUT-ladoLSB1.bmp", package);
+    create_file_from_package("../resources/test_files/OUTPUT-ladoLSB1.bmp", package);
     free_file_package(package);
     free_bmp(bmp);
 }
 
 void test_extract_file_lsb4(){
-    BMPImage *bmp = new_bmp_file("../resources/test_images/ladoLSB4.bmp");
+    BMPImage *bmp = new_bmp_file("../resources/test_files/ladoLSB4.bmp");
     assert(bmp != NULL);
 
     FilePackage *package = extract_data(bmp, STEG_LSB4);
@@ -532,13 +533,13 @@ void test_extract_file_lsb4(){
         return;
     }
 
-    create_file_from_package("../resources/test_images/OUTPUT-ladoLSB4.bmp", package);
+    create_file_from_package("../resources/test_files/OUTPUT-ladoLSB4.bmp", package);
     free_file_package(package);
     free_bmp(bmp);
 }
 
 void test_extract_file_lsbi(){
-    BMPImage *bmp = new_bmp_file("../resources/test_images/ladoLSBI.bmp");
+    BMPImage *bmp = new_bmp_file("../resources/test_files/ladoLSBI.bmp");
     assert(bmp != NULL);
 
     FilePackage *package = extract_data(bmp, STEG_LSBI);
@@ -548,11 +549,32 @@ void test_extract_file_lsbi(){
         return;
     }
 
-    create_file_from_package("../resources/test_images/OUTPUT-ladoLSBI.bmp", package);
+    create_file_from_package("../resources/test_files/OUTPUT-ladoLSBI.bmp", package);
     free_file_package(package);
     free_bmp(bmp);
 }
 
+void test_embed_message_lsb1() {
+    BMPImage *bmp = new_bmp_file("../resources/test_files/sample1.bmp");
+    assert(bmp != NULL);
+
+    size_t size = 0;
+    uint8_t *message = embed_data_from_file("../resources/test_files/message.txt", &size );
+
+    if(!embed(bmp, message, size, STEG_LSB1)){
+        LOG(ERROR, "Error al embeber el mensaje en embed.")
+        free_bmp(bmp);
+        return;
+    }
+
+    save_bmp_file("../resources/test_files/OUTPUT-sample1.bmp", bmp);
+    free_bmp(bmp);
+
+   bmp = new_bmp_file("../resources/test_files/OUTPUT-sample1.bmp");
+   FilePackage* file = extract_data(bmp, STEG_LSB1);
+   create_file_from_package("../resources/test_files/OUTPUT", file);
+
+}
 /**
  * @brief Prueba de conversión de endian para datos de 4 bytes.
  */
@@ -561,7 +583,7 @@ void test_format_data_endian_4bytes() {
     uint8_t expected_little_endian[4] = {0x78, 0x56, 0x34, 0x12};
 
     //print_buffer(data_big_endian, 4);
-    format_data_endian(data_big_endian, 4);
+    adjust_data_endianness(data_big_endian, 4);
     //print_buffer(data_big_endian, 4);
 
     if (IS_SYSTEM_BIG_ENDIAN()) {
@@ -583,7 +605,7 @@ void test_format_data_endian_2bytes() {
     uint8_t data_big_endian[2] = {0xAB, 0xCD};
 
     //print_buffer(data_big_endian, 2);
-    format_data_endian(data_big_endian, 2);
+    adjust_data_endianness(data_big_endian, 2);
     //print_buffer(data_big_endian, 2);
 
     if (IS_SYSTEM_BIG_ENDIAN()) {
@@ -627,9 +649,11 @@ int main() {
 //    test_extract_extension_lsb4();
 //    test_extract_extension_lsbi();
 
-    test_extract_file_lsb1();
+//    test_extract_file_lsb1();
 //    test_extract_file_lsb4();
 //    test_extract_file_lsbi();
+
+    test_embed_message_lsb1();
 
 //    test_format_data_endian_4bytes();
 //    test_format_data_endian_2bytes();
