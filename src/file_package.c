@@ -3,10 +3,10 @@
 
 #define EXTENSION_SIZE 16 // Maximum size of the file extensio
 
-#define IS_BIG_ENDIAN true
-
 size_t get_file_size(FILE *file);
 uint8_t* get_file_extension(const char *file_name);
+void format_data_endian(uint32_t value, uint8_t *buffer);
+
 
 FilePackage *new_file_package(const char *file_path){
     if (file_path == NULL) {
@@ -27,7 +27,7 @@ FilePackage *new_file_package(const char *file_path){
         fclose(file);
         return NULL;
     }
-    LOG(DEBUG, "[Embed File] File size: %lu bytes.", file_size)
+    LOG(DEBUG, "[File] File size: %lu bytes.", file_size)
 
     // Allocate memory for the file data
     unsigned char *bitmap = (unsigned char *)malloc(file_size);
@@ -71,7 +71,7 @@ FilePackage *new_file_package(const char *file_path){
 
     fclose(file);  // Close the file after reading
 
-    LOG(INFO, "[Embed File]  File package created successfully: size = %lu, extension = %s", file_size, extension)
+    LOG(INFO, "[File]  File package created successfully: size = %lu, extension = %s", file_size, extension)
     return package;
 }
 
@@ -96,10 +96,10 @@ uint8_t* embed_data_from_file(const char *file_path, size_t *buffer_size) {
         fclose(file);
         return NULL;
     }
-    LOG(DEBUG, "[Embed File] File size: %lu bytes.", file_size)
+    LOG(DEBUG, "[File] File size: %lu bytes.", file_size)
 
     // Allocate memory for the file data
-    uint8_t *buffer = (uint8_t *)malloc(file_size + sizeof(uint32_t) + EXTENSION_SIZE);
+    uint8_t *buffer = (uint8_t *)malloc( sizeof(uint32_t) + file_size + EXTENSION_SIZE);
     if (buffer == NULL) {
         LOG(ERROR, "Could not allocate memory for the buffer.")
         fclose(file);
@@ -107,7 +107,7 @@ uint8_t* embed_data_from_file(const char *file_path, size_t *buffer_size) {
     }
 
     // set the size of the file
-    memcpy(&buffer[buffer_index], &file_size, sizeof(uint32_t));
+    format_data_endian((uint32_t)file_size, &buffer[buffer_index]);
     buffer_index += sizeof(uint32_t);
 
     // Read the file data
@@ -118,7 +118,7 @@ uint8_t* embed_data_from_file(const char *file_path, size_t *buffer_size) {
         return NULL;
     }
     buffer_index += file_size;
-    LOG(DEBUG, "[Embed File] File data read successfully.")
+    LOG(DEBUG, "[File] File data read successfully.")
 
     // Get the file extension
     uint8_t* extension = get_file_extension(file_path);
@@ -131,7 +131,7 @@ uint8_t* embed_data_from_file(const char *file_path, size_t *buffer_size) {
     size_t  extension_size = strlen((const char*)extension) + 1;
     memcpy(&buffer[buffer_index], extension, extension_size);
     buffer_index += extension_size;
-    LOG(DEBUG, "[Embed File] File extension: %s.", extension)
+    LOG(DEBUG, "[File] File extension: %s.", extension)
 
     // Close the file and free the extension
     free(extension);
@@ -224,18 +224,9 @@ uint8_t* create_data_buffer(const FilePackage *package, size_t *buffer_size) {
     size_t offset = 0;
 
     // Convertir el tamaño a big-endian o little-endian según sea necesario
-    uint32_t data_size = package->size;
-    if(IS_BIG_ENDIAN){
-        buffer[offset++] = (data_size >> 24) & 0xFF;
-        buffer[offset++] = (data_size >> 16) & 0xFF;
-        buffer[offset++] = (data_size >> 8) & 0xFF;
-        buffer[offset++] = data_size & 0xFF;
-    } else {
-        buffer[offset++] = data_size & 0xFF;
-        buffer[offset++] = (data_size >> 8) & 0xFF;
-        buffer[offset++] = (data_size >> 16) & 0xFF;
-        buffer[offset++] = (data_size >> 24) & 0xFF;
-    }
+    format_data_endian((uint32_t)package->size, &buffer[offset]);
+    offset += sizeof(uint32_t);
+    LOG(DEBUG, "Tamaño del archivo: %u bytes.", buffer[offset])
 
     // Copiar los datos
     memcpy(buffer + offset, package->data, package->size);
@@ -267,7 +258,7 @@ int create_file_from_package(const char *filename, FilePackage *package) {
     }
 
     if (strlen((char*)package->extension) >= EXTENSION_SIZE){
-        LOG(ERROR, "File extension too long.");
+        LOG(ERROR, "File extension too long.")
         return -1;
     }
 
@@ -375,9 +366,8 @@ size_t get_file_size(FILE *file){
     }
     fseek(file, 0, SEEK_END);
     size_t file_size = ftell(file);
-    fseek(file, 0, SEEK_SET);  // Reset file pointer to the beginning
+    fseek(file, 0, SEEK_SET);
 
-    LOG(DEBUG, "File size: %lu bytes", file_size)
     return file_size;
 }
 
@@ -389,23 +379,50 @@ size_t get_file_size(FILE *file){
  */
 uint8_t * get_file_extension(const char *file_name) {
     if (file_name == NULL) {
-        LOG(ERROR, "Invalid filename.");
+        LOG(ERROR, "Invalid filename.")
         return NULL;
     }
 
     char *dot = strrchr(file_name, '.');
     if (!dot || dot == file_name) {
-        LOG(ERROR, "No valid file extension found.");
+        LOG(ERROR, "No valid file extension found.")
         return NULL;
     }
 
     size_t ext_length = strlen(dot);
     if (ext_length >= EXTENSION_SIZE) {
-        LOG(ERROR, "File extension too long.");
+        LOG(ERROR, "File extension too long.")
         return NULL;
     }
 
-    LOG(DEBUG, "File extension found: %s.", dot);
     return (uint8_t*) strdup(dot);
+}
+
+/**
+ * @brief Formats a uint32_t number to match the desired endianness.
+ *
+ * This function checks if the system's endianness matches the desired data format defined
+ * by IS_DATA_BIG_ENDIAN. If it doesn't match, it converts the number to the appropriate endianness.
+ *
+ * @param value        The number to format.
+ * @param buffer       The buffer where the formatted number will be stored.
+ */
+void format_data_endian(uint32_t value, uint8_t *buffer) {
+    if (IS_DATA_BIG_ENDIAN == IS_SYSTEM_BIG_ENDIAN()) {
+        LOG(DEBUG, "[File] Data endianness matches system endianness. No conversion needed.")
+        // Copy directly if the system endianness matches the data endianness
+        buffer[0] = (value >> 24) & 0xFF;
+        buffer[1] = (value >> 16) & 0xFF;
+        buffer[2] = (value >> 8) & 0xFF;
+        buffer[3] = value & 0xFF;
+    } else {
+        LOG(DEBUG, "[File] Your system is %s-endian, data is %s-endian. Converting data endian.",
+            IS_SYSTEM_BIG_ENDIAN() ? "big" : "little", IS_DATA_BIG_ENDIAN ? "big" : "little")
+        // Convert to the opposite endianness
+        buffer[3] = (value >> 24) & 0xFF;
+        buffer[2] = (value >> 16) & 0xFF;
+        buffer[1] = (value >> 8) & 0xFF;
+        buffer[0] = value & 0xFF;
+    }
 }
 

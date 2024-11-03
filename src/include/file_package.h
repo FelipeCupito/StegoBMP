@@ -7,6 +7,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include "logger.h"
+#include "types.h"
 
 /**
  * @brief Structure to hold message file data in memory.
@@ -16,7 +17,6 @@ typedef struct {
     uint8_t* data;          // File data (bitmap)
     uint8_t* extension;     // File extension (e.g., .txt, .bmp)
 } FilePackage;
-
 
 /**
  * Create a FilePackage by reading the file data into memory.
@@ -99,6 +99,7 @@ int create_file_from_raw_data(const char *file_name, const uint8_t *data);
  */
 size_t get_file_size(FILE *file);
 uint8_t* get_file_extension(const char *file_name);
+void format_data_endian(uint32_t value, uint8_t *buffer);
 #endif
 
 
