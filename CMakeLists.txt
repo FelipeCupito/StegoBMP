@@ -4,65 +4,53 @@ project(StegoBMP C)
 # Establecer el estándar de C
 set(CMAKE_C_STANDARD 11)
 
-# Incluir directorios donde se encuentran los headers
-include_directories(src/include)
-
 # Buscar la librería OpenSSL
 find_package(OpenSSL REQUIRED)
 
-# Incluir directorios de la librería de CUnit
-file(GLOB SRC_FILES "src/*.c")
+# Recopilar los archivos fuente de la biblioteca excluyendo main.c
+file(GLOB LIB_SOURCES "src/*.c")
+list(FILTER LIB_SOURCES EXCLUDE REGEX "src/main\.c$")
+
+# Crear una biblioteca estática llamada stegolib
+add_library(stegolib STATIC ${LIB_SOURCES})
+
+# Incluir directorios donde se encuentran los headers
+target_include_directories(stegolib PUBLIC src/include)
+
+# Enlazar la biblioteca con OpenSSL
+target_link_libraries(stegolib PUBLIC OpenSSL::SSL OpenSSL::Crypto)
 
 # Crear el ejecutable principal StegoBMP
-add_executable(stegobmp
-        ${SRC_FILES}
-)
+add_executable(stegobmp src/main.c)
 
-# Enlazar el ejecutable con OpenSSL
-target_link_libraries(stegobmp OpenSSL::SSL OpenSSL::Crypto)
-
+# Enlazar el ejecutable principal con stegolib
+target_link_libraries(stegobmp PRIVATE stegolib)
 
 # ------ Configuración de Tests ------ #
 enable_testing()
 
-# file handler tests
-add_executable(test_bmp_image
+# Definir los archivos de prueba
+set(TEST_SOURCES
         tests/test_bmp_image.c
-        src/logger.c
-        src/bmp_image.c
-)
-target_compile_definitions(test_bmp_image PRIVATE TESTING)
-add_test(NAME BmpImage COMMAND test_bmp_image)
-
-# argumnets tests
-add_executable(test_arguments
         tests/test_arguments.c
-        src/logger.c
-        src/arguments.c
-)
-target_compile_definitions(test_arguments PRIVATE TESTING)
-add_test(NAME ArgumentsTest COMMAND test_arguments)
-
-# stegobmp tests
-add_executable(test_stegobmp
         tests/test_stegobmp.c
-        src/logger.c
-        src/stego_bmp.c
-        src/bmp_image.c
-        src/file_package.c
-)
-target_compile_definitions(test_stegobmp PRIVATE TESTING)
-add_test(NAME StegoBMPTest COMMAND test_stegobmp)
-
-# file packager tests
-add_executable(test_file_package
         tests/test_file_package.c
-        src/logger.c
-        src/file_package.c
 )
-target_compile_definitions(test_file_package PRIVATE TESTING)
-add_test(NAME FilePackageTest COMMAND test_file_package)
 
+# Crear ejecutables de prueba y enlazarlos con stegolib
+foreach(test_src ${TEST_SOURCES})
+    # Obtener el nombre del ejecutable sin la extensión
+    get_filename_component(test_name ${test_src} NAME_WE)
 
+    # Crear el ejecutable de prueba
+    add_executable(${test_name} ${test_src})
 
+    # Definir la macro TESTING para los tests
+    target_compile_definitions(${test_name} PRIVATE TESTING)
 
+    # Enlazar el ejecutable de prueba con stegolib y OpenSSL
+    target_link_libraries(${test_name} PRIVATE stegolib)
+
+    # Agregar el test a CTest
+    add_test(NAME ${test_name} COMMAND ${test_name})
+endforeach()
