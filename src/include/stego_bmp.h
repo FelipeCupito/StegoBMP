@@ -11,8 +11,8 @@
 #include "logger.h"
 #include "types.h"
 
-#define IS_DATA_BIG_ENDIAN true   // Cambia esta macro según el formato de los datos
-#define BYTES_TO_BITS(bytes) ((bytes) * 8) // Convierte bytes a bits
+#define IS_DATA_BIG_ENDIAN false   // Cambia esta macro según el formato de los datos
+#define BYTES_TO_BITS(bytes) ((bytes) * 8)
 #define IS_SYSTEM_BIG_ENDIAN() ( (*(uint16_t*)"\0\xff" < 0x100) )
 
 /**

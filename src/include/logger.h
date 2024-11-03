@@ -1,6 +1,3 @@
-//
-// Created by Felipe Cupitó on 30/09/2024.
-//
 #ifndef STEGOBMP_LOGGER_H
 #define STEGOBMP_LOGGER_H
 

@@ -627,7 +627,7 @@ int main() {
 //    test_extract_extension_lsb4();
 //    test_extract_extension_lsbi();
 
-//    test_extract_file_lsb1();
+    test_extract_file_lsb1();
 //    test_extract_file_lsb4();
 //    test_extract_file_lsbi();
 

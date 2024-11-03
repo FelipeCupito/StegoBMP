@@ -88,7 +88,7 @@ BMPImage *new_bmp_file(const char *file_path) {
         free(bmp);
         return NULL;
     }
-    LOG(INFO, "BMP dimensions: width = %lu, height = %lu.", bmp->width, bmp->height)
+    LOG(INFO, "[BMP] dimensions: width = %lu, height = %lu.", bmp->width, bmp->height)
 
     // Read the size of the pixel data from the BMP header
     bmp->data_size = *(int *)&bmp->header[BMP_IMAGE_SIZE_OFFSET];
@@ -98,7 +98,7 @@ BMPImage *new_bmp_file(const char *file_path) {
         free(bmp);
         return NULL;
     }
-    LOG(INFO, "BMP data size: %lu bytes.", bmp->data_size)
+    LOG(INFO, "[BMP] data size: %lu bytes.", bmp->data_size)
 
     // Allocate memory for the pixel data
     bmp->data = (unsigned char *)malloc(bmp->data_size);
@@ -119,7 +119,7 @@ BMPImage *new_bmp_file(const char *file_path) {
     }
 
     fclose(file);
-    LOG(INFO, "BMP file read successfully: %s.", file_path)
+    LOG(INFO, "[BMP] file read successfully: %s.", file_path)
     return bmp;
 }
 
@@ -151,7 +151,7 @@ int save_bmp_file(const char *output_file, BMPImage *bmp) {
     }
 
     fclose(file);
-    LOG(INFO, "BMP file saved successfully to %s.", output_file)
+    LOG(INFO, "[BMP] file saved successfully to %s.", output_file)
     return 0;
 }
 

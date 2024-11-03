@@ -1,21 +1,22 @@
 
 #include "file_package.h"
 
-#define EXTENSION_SIZE 16               // Maximum size of the file extension
+#define EXTENSION_SIZE 16 // Maximum size of the file extensio
 
+#define IS_BIG_ENDIAN true
 
 size_t get_file_size(FILE *file);
-char *get_file_extension(const char *filename);
+uint8_t* get_file_extension(const char *file_name);
 
-FilePackage *new_file_package(const char *filepath){
-    if (filepath == NULL) {
+FilePackage *new_file_package(const char *file_path){
+    if (file_path == NULL) {
         LOG(ERROR, "Invalid file path.")
         return NULL;
     }
 
-    FILE *file = fopen(filepath, "rb");
+    FILE *file = fopen(file_path, "rb");
     if (file == NULL) {
-        LOG(ERROR, "Could not open file %s.", filepath)
+        LOG(ERROR, "Could not open file %s.", file_path)
         return NULL;
     }
 
@@ -26,6 +27,7 @@ FilePackage *new_file_package(const char *filepath){
         fclose(file);
         return NULL;
     }
+    LOG(DEBUG, "[Embed File] File size: %lu bytes.", file_size)
 
     // Allocate memory for the file data
     unsigned char *bitmap = (unsigned char *)malloc(file_size);
@@ -44,7 +46,7 @@ FilePackage *new_file_package(const char *filepath){
     }
 
     // Get the file extension
-    char *extension = get_file_extension(filepath);
+    uint8_t* extension = get_file_extension(file_path);
     if (extension == NULL) {
         LOG(ERROR, "Could not get the file extension.")
         free(bitmap);
@@ -69,8 +71,75 @@ FilePackage *new_file_package(const char *filepath){
 
     fclose(file);  // Close the file after reading
 
-    LOG(INFO, "File package created successfully: size = %lu, extension = %s", file_size, extension)
+    LOG(INFO, "[Embed File]  File package created successfully: size = %lu, extension = %s", file_size, extension)
     return package;
+}
+
+uint8_t* embed_data_from_file(const char *file_path, size_t *buffer_size) {
+    if (file_path == NULL) {
+        LOG(ERROR, "Invalid file path.")
+        return NULL;
+    }
+
+    size_t buffer_index = 0;
+
+    FILE *file = fopen(file_path, "rb");
+    if (file == NULL) {
+        LOG(ERROR, "Could not open file %s.", file_path)
+        return NULL;
+    }
+
+    // Get file size
+    size_t file_size = get_file_size(file);
+    if (file_size == 0) {
+        LOG(ERROR, "Could not get the file size.")
+        fclose(file);
+        return NULL;
+    }
+    LOG(DEBUG, "[Embed File] File size: %lu bytes.", file_size)
+
+    // Allocate memory for the file data
+    uint8_t *buffer = (uint8_t *)malloc(file_size + sizeof(uint32_t) + EXTENSION_SIZE);
+    if (buffer == NULL) {
+        LOG(ERROR, "Could not allocate memory for the buffer.")
+        fclose(file);
+        return NULL;
+    }
+
+    // set the size of the file
+    memcpy(&buffer[buffer_index], &file_size, sizeof(uint32_t));
+    buffer_index += sizeof(uint32_t);
+
+    // Read the file data
+    if (fread(&buffer[buffer_index], 1, file_size, file) != file_size){
+        LOG(ERROR, "Could not read the file data.")
+        fclose(file);
+        free(buffer);
+        return NULL;
+    }
+    buffer_index += file_size;
+    LOG(DEBUG, "[Embed File] File data read successfully.")
+
+    // Get the file extension
+    uint8_t* extension = get_file_extension(file_path);
+    if (extension == NULL) {
+        LOG(ERROR, "Could not get the file extension.")
+        free(buffer);
+        fclose(file);
+        return NULL;
+    }
+    size_t  extension_size = strlen((const char*)extension) + 1;
+    memcpy(&buffer[buffer_index], extension, extension_size);
+    buffer_index += extension_size;
+    LOG(DEBUG, "[Embed File] File extension: %s.", extension)
+
+    // Close the file and free the extension
+    free(extension);
+    fclose(file);
+
+    // Set the buffer size and return the buffer
+    *buffer_size = buffer_index;
+    return buffer;
 }
 
 
@@ -90,7 +159,7 @@ FilePackage *new_file_package_from_data(const uint8_t *data){
     // Extraer el tamaño de los datos (los primeros 4 bytes)
     file->size = *(int *)&data[0];
     if (file->size <= 0) {
-        LOG(ERROR, "Invalid file data size: %lu bytes.", file->size)
+        LOG(ERROR, "Invalid file data size: %u bytes.", file->size)
         free(file);
         return NULL;
     }
@@ -123,7 +192,7 @@ FilePackage *new_file_package_from_data(const uint8_t *data){
     }
 
     // Asignar memoria y copiar la extensión
-    file->extension = strdup(extension); // strdup asigna y copia la cadena
+    file->extension = (uint8_t*) strdup(extension); // strdup asigna y copia la cadena
     if (file->extension == NULL){
         LOG(ERROR, "Could not allocate memory for file extension.")
         free(file->data);
@@ -131,11 +200,59 @@ FilePackage *new_file_package_from_data(const uint8_t *data){
         return NULL;
     }
 
-    LOG(INFO, "FilePackage created successfully: size = %lu, extension = %s", file->size, file->extension)
+    LOG(INFO, "FilePackage created successfully: size = %u, extension = %s", file->size, file->extension)
     return file;
 }
 
 
+uint8_t* create_data_buffer(const FilePackage *package, size_t *buffer_size) {
+    if (package == NULL || package->data == NULL || package->extension == NULL) {
+        LOG(ERROR, "Argumentos inválidos en create_data_buffer.")
+        return NULL;
+    }
+
+    // Tamaño del campo de tamaño (4 bytes) + datos + extensión + byte nulo para la extensión
+    size_t extension_length = strlen((char*)package->extension) + 1;  // +1 para incluir el '\0'
+    *buffer_size = sizeof(package->size) + package->size + extension_length;
+
+    uint8_t *buffer = (uint8_t *)malloc(*buffer_size);
+    if (buffer == NULL) {
+        LOG(ERROR, "No se pudo asignar memoria para el buffer de datos.")
+        return NULL;
+    }
+
+    size_t offset = 0;
+
+    // Convertir el tamaño a big-endian o little-endian según sea necesario
+    uint32_t data_size = package->size;
+    if(IS_BIG_ENDIAN){
+        buffer[offset++] = (data_size >> 24) & 0xFF;
+        buffer[offset++] = (data_size >> 16) & 0xFF;
+        buffer[offset++] = (data_size >> 8) & 0xFF;
+        buffer[offset++] = data_size & 0xFF;
+    } else {
+        buffer[offset++] = data_size & 0xFF;
+        buffer[offset++] = (data_size >> 8) & 0xFF;
+        buffer[offset++] = (data_size >> 16) & 0xFF;
+        buffer[offset++] = (data_size >> 24) & 0xFF;
+    }
+
+    // Copiar los datos
+    memcpy(buffer + offset, package->data, package->size);
+    offset += package->size;
+
+    // Copiar la extensión incluyendo el '\0'
+    memcpy(buffer + offset, package->extension, extension_length);
+    offset += extension_length;
+
+    if (offset != *buffer_size) {
+        LOG(ERROR, "Error al crear el buffer de datos: tamaños inconsistentes.")
+        free(buffer);
+        return NULL;
+    }
+
+    return buffer;
+}
 
 
 int create_file_from_package(const char *filename, FilePackage *package) {
@@ -149,8 +266,13 @@ int create_file_from_package(const char *filename, FilePackage *package) {
         return -1;
     }
 
+    if (strlen((char*)package->extension) >= EXTENSION_SIZE){
+        LOG(ERROR, "File extension too long.");
+        return -1;
+    }
+
     // Concatenate filename and extension to form the full filename
-    size_t full_filename_length = strlen(filename) + strlen(package->extension) + 1; // +1 for null terminator
+    size_t full_filename_length = strlen(filename) + strlen((char*)package->extension) + 1; // +1 for null terminator
     char *full_filename = (char *)malloc(full_filename_length);
     if (full_filename == NULL) {
         LOG(ERROR, "Could not allocate memory for the full filename.")
@@ -170,7 +292,7 @@ int create_file_from_package(const char *filename, FilePackage *package) {
     // Write the file data from the FilePackage
     size_t written_bytes = fwrite(package->data, 1, package->size, file);
     if (written_bytes != package->size) {
-        LOG(ERROR, "Error writing data to file %s. Expected %lu bytes, wrote %lu bytes.",
+        LOG(ERROR, "Error writing data to file %s. Expected %u bytes, wrote %lu bytes.",
             full_filename, package->size, written_bytes)
         fclose(file);
         free(full_filename);
@@ -178,13 +300,13 @@ int create_file_from_package(const char *filename, FilePackage *package) {
     }
 
     // Successfully written the file
-    LOG(INFO, "Successfully created file %s with size %lu bytes.", full_filename, package->size)
+    LOG(INFO, "Successfully created file %s with size %u bytes.", full_filename, package->size)
 
     // Clean up
     fclose(file);
     free(full_filename);
 
-    return 0;
+    return 1;
 }
 
 int create_file_from_raw_data(const char *filename, const uint8_t *data){
@@ -206,19 +328,22 @@ int create_file_from_raw_data(const char *filename, const uint8_t *data){
 }
 
 void free_file_package(FilePackage *package) {
-    if (package) {
+    if (package == NULL) return;
+
+    if (package->data != NULL) {
         free(package->data);
-        free(package->extension);
-        free(package);
-        LOG(DEBUG, "File package memory freed.")
-    }else{
-        LOG(ERROR, "Invalid FilePackage pointer.")
     }
+
+    if (package->extension != NULL) {
+        free(package->extension);
+    }
+
+    free(package);
 }
 
 void print_file_package(FilePackage *package) {
     if (package) {
-        printf("File size: %lu bytes\n", package->size);
+        printf("File size: %u bytes\n", package->size);
         printf("File extension: %s\n", package->extension);
 
         // Print the first 10 bytes of the file data for inspection
@@ -227,7 +352,7 @@ void print_file_package(FilePackage *package) {
             printf("%02X ", package->data[i]);
         }
         printf("\n");
-        LOG(INFO, "Printed file package: size = %lu, extension = %s", package->size, package->extension)
+        LOG(INFO, "Printed file package: size = %u, extension = %s", package->size, package->extension)
     } else {
         LOG(ERROR, "Invalid FilePackage pointer.")
     }
@@ -258,22 +383,29 @@ size_t get_file_size(FILE *file){
 
 /**
  * Get the file extension from the filename.
- * @param filename Name of the file
+ * @param file_name Name of the file
  * @return Dynamically allocated string with the file extension, or NULL if there is no valid extension.
  *         The caller is responsible for freeing the memory.
  */
-char *get_file_extension(const char *filename) {
-    if (filename == NULL) {
-        LOG(ERROR, "Invalid filename.")
+uint8_t * get_file_extension(const char *file_name) {
+    if (file_name == NULL) {
+        LOG(ERROR, "Invalid filename.");
         return NULL;
     }
 
-    char *dot = strrchr(filename, '.');
-    if (!dot || dot == filename) {
-        LOG(ERROR, "No valid file extension found.")
+    char *dot = strrchr(file_name, '.');
+    if (!dot || dot == file_name) {
+        LOG(ERROR, "No valid file extension found.");
         return NULL;
     }
 
-    LOG(DEBUG, "File extension found: %s.", dot)
-    return strdup(dot);  // Duplicate the extension string
+    size_t ext_length = strlen(dot);
+    if (ext_length >= EXTENSION_SIZE) {
+        LOG(ERROR, "File extension too long.");
+        return NULL;
+    }
+
+    LOG(DEBUG, "File extension found: %s.", dot);
+    return (uint8_t*) strdup(dot);
 }
+

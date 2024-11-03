@@ -1,8 +1,8 @@
 #include "stego_bmp.h"
 
-#define HIDDEN_DATA_SIZE_FIELD 32    // Tamaño en bits del campo que almacena el tamaño de los datos ocultos
+#define HIDDEN_DATA_SIZE_FIELD 32   // Tamaño en bits del campo que almacena el tamaño de los datos ocultos
 #define EXTENSION_SIZE 16           // Tamaño máximo permitido para la extensión del archivo
-#define PATTERN_MAP_SIZE 4       // Tamaño en bits del mapa de patrones para LSBI
+#define PATTERN_MAP_SIZE 4          // Tamaño en bits del mapa de patrones para LSBI
 
 
 /**
@@ -132,14 +132,14 @@ bool extract_bits_generic(const BMPImage *bmp, size_t num_bits, uint8_t *buffer,
 
     for (; bit_index < num_bits;) {
         if (component_index >= bmp->data_size) {
-            LOG(ERROR, "No hay suficiente espacio en BMP para extracción de datos.");
+            LOG(ERROR, "No hay suficiente espacio en BMP para extracción de datos.")
             return false;
         }
 
         // Extraer `bits_per_component` bits desde el componente
         Component component = get_component_by_index(bmp, component_index++);
         if (component.component_ptr == NULL) {
-            LOG(ERROR, "get_component_by_index retornó NULL en extract_bits_generic.");
+            LOG(ERROR, "get_component_by_index retornó NULL en extract_bits_generic.")
             return false;
         }
 
@@ -234,7 +234,7 @@ bool extract_bits_lsb4(const BMPImage *bmp, size_t num_bits, uint8_t *buffer, si
  */
 bool embed_bits_lsbi(BMPImage *bmp, const uint8_t *data, size_t num_bits, size_t *offset) {
     if (bmp == NULL || bmp->data == NULL || data == NULL || offset == NULL) {
-        LOG(ERROR, "Argumentos NULL en embed_bits_lsbi.");
+        LOG(ERROR, "Argumentos NULL en embed_bits_lsbi.")
         return false;
     }
 
@@ -244,7 +244,7 @@ bool embed_bits_lsbi(BMPImage *bmp, const uint8_t *data, size_t num_bits, size_t
     size_t pattern_unchanged[PATTERN_MAP_SIZE] = {0};
 
     if (component_index + num_bits > bmp->data_size) {
-        LOG(ERROR, "No hay suficiente espacio para embeber datos y pattern_map.");
+        LOG(ERROR, "No hay suficiente espacio para embeber datos y pattern_map.")
         return false;
     }
 
@@ -271,7 +271,7 @@ bool embed_bits_lsbi(BMPImage *bmp, const uint8_t *data, size_t num_bits, size_t
 
     // Verificar si todos los bits fueron embebidos
     if (bit_to_embed_count < num_bits) {
-        LOG(ERROR, "No se pudieron embeber todos los bits de datos.");
+        LOG(ERROR, "No se pudieron embeber todos los bits de datos.")
         return false;
     }
 
@@ -296,7 +296,7 @@ bool embed_bits_lsbi(BMPImage *bmp, const uint8_t *data, size_t num_bits, size_t
     size_t pattern_map_offset = *offset;
     uint8_t pattern_map_to_embed = pattern_map << 4; // Mover a los 4 bits más significativos
     if (!steg_operations[STEG_LSB1].embed(bmp, &pattern_map_to_embed, PATTERN_MAP_SIZE, &pattern_map_offset)) {
-        LOG(ERROR, "Error al embeber pattern_map.");
+        LOG(ERROR, "Error al embeber pattern_map.")
         return false;
     }
 
@@ -382,7 +382,7 @@ bool extract_bits_lsbi(const BMPImage *bmp, size_t num_bits, uint8_t *buffer, si
 
     // Verificar que se hayan extraído el número total de bits esperado
     if (bit_extracted_count != num_bits) {
-        LOG(ERROR, "No se extrajeron todos los bits requeridos.");
+        LOG(ERROR, "No se extrajeron todos los bits requeridos.")
         return false;
     }
 
@@ -453,7 +453,7 @@ bool check_capacity_lsbi(const BMPImage *bmp, size_t num_bits) {
 void format_data_endian(uint8_t *data, size_t size) {
     if (IS_SYSTEM_BIG_ENDIAN() != IS_DATA_BIG_ENDIAN) {
         LOG(DEBUG, "Your system is %s-endian, data is %s-endian. Converting data endian.",
-            IS_SYSTEM_BIG_ENDIAN() ? "big" : "little", IS_DATA_BIG_ENDIAN ? "big" : "little");
+            IS_SYSTEM_BIG_ENDIAN() ? "big" : "little", IS_DATA_BIG_ENDIAN ? "big" : "little")
         for (size_t i = 0; i < size / 2; i++) {
             uint8_t temp = data[i];
             data[i] = data[size - i - 1];
@@ -474,20 +474,20 @@ void format_data_endian(uint8_t *data, size_t size) {
  */
 size_t extract_data_size(const BMPImage *bmp, StegAlgorithm steg_alg, size_t *offset, void *context) {
     if (bmp == NULL || bmp->data == NULL || offset == NULL || (steg_alg == STEG_LSBI && context == NULL)) {
-        LOG(ERROR, "Argumentos inválidos en extract_data_size.");
+        LOG(ERROR, "Argumentos inválidos en extract_data_size.")
         return 0;
     }
 
     uint32_t extracted_size = 0;
     if (!steg_operations[steg_alg].extract(bmp, HIDDEN_DATA_SIZE_FIELD, (uint8_t *)&extracted_size, offset, context)) {
-        LOG(ERROR, "Error al extraer el tamaño de los datos.");
+        LOG(ERROR, "Error al extraer el tamaño de los datos.")
         return 0;
     }
 
     // Convertir el valor si es necesario
     format_data_endian((uint8_t *)&extracted_size, sizeof(extracted_size));
 
-    LOG(INFO, "Tamaño de datos extraído: %u", extracted_size);
+    LOG(INFO, "Tamaño de datos extraído: %u", extracted_size)
     return extracted_size;
 }
 
@@ -587,7 +587,7 @@ FilePackage* extract_data(const BMPImage *bmp, StegAlgorithm steg_alg) {
             free_file_package(package);
             return NULL;
         }
-        LOG(INFO, "Patron obtenido: %d%d%d%d%d%d%d%d",
+        LOG(DEBUG, "Patron obtenido: %d%d%d%d%d%d%d%d",
             (pattern_map >> 7) & 0x01,
             (pattern_map >> 6) & 0x01,
             (pattern_map >> 5) & 0x01,
@@ -605,7 +605,7 @@ FilePackage* extract_data(const BMPImage *bmp, StegAlgorithm steg_alg) {
         free_file_package(package);
         return NULL;
     }
-    LOG(INFO, "Tamaño de los datos extraídos: %zu bytes.", package->size)
+    LOG(INFO, "Tamaño de los datos extraídos: %u bytes.", package->size)
 
     // Extraer los datos del archivo
     package->data = (uint8_t *)malloc(package->size);
@@ -621,13 +621,13 @@ FilePackage* extract_data(const BMPImage *bmp, StegAlgorithm steg_alg) {
     }
 
     // Extraer la extensión del archivo
-    package->extension = (char *)malloc(EXTENSION_SIZE);
+    package->extension = (uint8_t *)malloc(EXTENSION_SIZE);
     if (package->extension == NULL) {
         LOG(ERROR, "No se pudo asignar memoria para la extensión en extract_data.")
         free_file_package(package);
         return NULL;
     }
-    if (!extract_extension(bmp, steg_alg, package->extension, &offset, &pattern_map)) {
+    if (!extract_extension(bmp, steg_alg, (char*)package->extension, &offset, &pattern_map)) {
         LOG(ERROR, "Error al extraer la extensión en extract_data.")
         free_file_package(package);
         return NULL;

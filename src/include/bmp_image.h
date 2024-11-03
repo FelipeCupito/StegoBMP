@@ -6,7 +6,7 @@
 #include <string.h>
 #include "logger.h"
 
-#define BMP_HEADER_SIZE 54      // Total size of the BMP header for V3 format
+#define BMP_HEADER_SIZE 54  // Total size of the BMP header for V3 format
 
 /**
  * @brief Structure to hold BMP image data, including header and pixel data.
@@ -14,7 +14,7 @@
 typedef struct {
     unsigned char header[BMP_HEADER_SIZE];   // BMP header (54 bytes for V3 format)
     unsigned char *data;                     // Pointer to the pixel data
-    size_t data_size;                        // Size of the pixel data in bytes
+    size_t data_size;                        // Size of the pixel data in bytes and padding
     size_t width;                            // Width of the image in pixels
     size_t height;                           // Height of the image in pixels
 } BMPImage;
