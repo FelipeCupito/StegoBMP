@@ -1,10 +1,11 @@
 #ifndef CRYPTO_UTILS_H
 #define CRYPTO_UTILS_H
 
-#include <file_handler.h>
+#include <bmp_image.h>
 #include <openssl/evp.h>
 #include <stdint.h>
 #include "types.h"
+#include "file_package.h"
 
 typedef struct{
     uint32_t size;
