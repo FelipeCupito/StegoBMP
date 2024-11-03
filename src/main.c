@@ -6,6 +6,7 @@
 #include "./include/arguments.h"
 #include "./include/file_package.h"
 #include "./include/stego_bmp.h"
+#include "./include/cryptoUtils.h"
 
 int main(int argc, char *argv[]) {
     // Parse command-line arguments
@@ -35,6 +36,7 @@ int main(int argc, char *argv[]) {
         // Encrypt the data if necessary
         if(arguments.encryption_mode != ENC_NONE){
             LOG(INFO, "Encrypting the data.")
+            emd_data = crypto_encrypt(emd_data, size, arguments.encryption_algo, arguments.encryption_mode, arguments.password, &size);
         }
 
         // Embed the data into the BMP image
