@@ -199,45 +199,45 @@ FilePackage *new_file_package_from_data(const uint8_t *data){
 }
 
 
-//uint8_t* create_data_buffer(const FilePackage *package, size_t *buffer_size) {
-//    if (package == NULL || package->data == NULL || package->extension == NULL) {
-//        LOG(ERROR, "Argumentos inválidos en create_data_buffer.")
-//        return NULL;
-//    }
-//
-//    // Tamaño del campo de tamaño (4 bytes) + datos + extensión + byte nulo para la extensión
-//    size_t extension_length = strlen((char*)package->extension) + 1;  // +1 para incluir el '\0'
-//    *buffer_size = sizeof(package->size) + package->size + extension_length;
-//
-//    uint8_t *buffer = (uint8_t *)malloc(*buffer_size);
-//    if (buffer == NULL) {
-//        LOG(ERROR, "No se pudo asignar memoria para el buffer de datos.")
-//        return NULL;
-//    }
-//
-//    size_t offset = 0;
-//
-//    // Convertir el tamaño a big-endian o little-endian según sea necesario
-//    format_data_endian((uint32_t)package->size, &buffer[offset]);
-//    offset += sizeof(uint32_t);
-//    LOG(DEBUG, "Tamaño del archivo: %u bytes.", buffer[offset])
-//
-//    // Copiar los datos
-//    memcpy(buffer + offset, package->data, package->size);
-//    offset += package->size;
-//
-//    // Copiar la extensión incluyendo el '\0'
-//    memcpy(buffer + offset, package->extension, extension_length);
-//    offset += extension_length;
-//
-//    if (offset != *buffer_size) {
-//        LOG(ERROR, "Error al crear el buffer de datos: tamaños inconsistentes.")
-//        free(buffer);
-//        return NULL;
-//    }
-//
-//    return buffer;
-//}
+uint8_t* create_data_buffer(const FilePackage *package, size_t *buffer_size) {
+    if (package == NULL || package->data == NULL || package->extension == NULL) {
+        LOG(ERROR, "Argumentos inválidos en create_data_buffer.")
+        return NULL;
+    }
+
+    // Tamaño del campo de tamaño (4 bytes) + datos + extensión + byte nulo para la extensión
+    size_t extension_length = strlen((char*)package->extension) + 1;  // +1 para incluir el '\0'
+    *buffer_size = sizeof(package->size) + package->size + extension_length;
+
+    uint8_t *buffer = (uint8_t *)malloc(*buffer_size);
+    if (buffer == NULL) {
+        LOG(ERROR, "No se pudo asignar memoria para el buffer de datos.")
+        return NULL;
+    }
+
+    size_t offset = 0;
+
+    // Convertir el tamaño a big-endian o little-endian según sea necesario
+    format_data_endian((uint32_t)package->size, &buffer[offset]);
+    offset += sizeof(uint32_t);
+    LOG(DEBUG, "Tamaño del archivo: %u bytes.", buffer[offset])
+
+    // Copiar los datos
+    memcpy(buffer + offset, package->data, package->size);
+    offset += package->size;
+
+    // Copiar la extensión incluyendo el '\0'
+    memcpy(buffer + offset, package->extension, extension_length);
+    offset += extension_length;
+
+    if (offset != *buffer_size) {
+        LOG(ERROR, "Error al crear el buffer de datos: tamaños inconsistentes.")
+        free(buffer);
+        return NULL;
+    }
+
+    return buffer;
+}
 
 
 int create_file_from_package(const char *filename, FilePackage *package) {

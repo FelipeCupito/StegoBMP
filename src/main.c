@@ -70,9 +70,27 @@ int main(int argc, char *argv[]) {
                 return 1;
             }
         } else{
-            LOG(ERROR, "Decrypting the data.sssssssss")
-            //extract_encrypted_data(bmp, arguments.steg_algorithm, &package->size);
+            LOG(INFO, "Decrypting the extracted data.")
+            size_t extracted_size = 0;
+            uint8_t *encrypted_data = extract_encrypted_data(bmp, arguments.steg_algorithm, &extracted_size);
+            if (encrypted_data == NULL) {
+                LOG(ERROR, "Error extracting encrypted data.")
+                return 1;
+            }
 
+            // Decrypt the extracted data
+            uint8_t *decrypted_data = crypto_decrypt(encrypted_data, extracted_size, arguments.encryption_algo, arguments.encryption_mode, (const uint8_t *)arguments.password, &extracted_size);
+            if (decrypted_data == NULL) {
+                LOG(ERROR, "Error decrypting the extracted data.")
+                return 1;
+            }
+
+            // Create a FilePackage from the decrypted data
+            package = new_file_package_from_data(decrypted_data);
+            if (package == NULL) {
+                LOG(ERROR, "Error creating FilePackage from decrypted data.")
+                return 1;
+            }
         }
 
         // Save the extracted data to a file

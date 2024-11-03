@@ -42,28 +42,28 @@ FilePackage *new_file_package(const char *file_path);
 uint8_t* embed_data_from_file(const char *file_path, size_t *buffer_size);
 
 
-///**
-// * @brief Creates a FilePackage from raw data in memory.
-// *
-// * This function interprets the provided raw data to extract the file size, data, and extension,
-// * and stores them in a dynamically allocated FilePackage structure.
-// *
-// * @param data Pointer to the raw data buffer.
-// * @return FilePackage* Pointer to a dynamically allocated FilePackage structure, or NULL on error.
-// *         The caller must free the FilePackage using `free_file_package`.
-// */
-//FilePackage *new_file_package_from_data(const uint8_t *data);
+/**
+ * @brief Creates a FilePackage from raw data in memory.
+ *
+ * This function interprets the provided raw data to extract the file size, data, and extension,
+ * and stores them in a dynamically allocated FilePackage structure.
+ *
+ * @param data Pointer to the raw data buffer.
+ * @return FilePackage* Pointer to a dynamically allocated FilePackage structure, or NULL on error.
+ *         The caller must free the FilePackage using `free_file_package`.
+ */
+FilePackage *new_file_package_from_data(const uint8_t *data);
 
 
 
-///**
-// * @brief Crea un buffer que contiene el tamaño de los datos, los datos y la extensión concatenados.
-// *
-// * @param package      Puntero al FilePackage que contiene los datos y la extensión.
-// * @param buffer_size  Puntero donde se almacenará el tamaño total del buffer creado.
-// * @return uint8_t*    Puntero al buffer creado. El llamante es responsable de liberar la memoria.
-// */
-//uint8_t* create_data_buffer(const FilePackage *package, size_t *buffer_size);
+/**
+ * @brief Crea un buffer que contiene el tamaño de los datos, los datos y la extensión concatenados.
+ *
+ * @param package      Puntero al FilePackage que contiene los datos y la extensión.
+ * @param buffer_size  Puntero donde se almacenará el tamaño total del buffer creado.
+ * @return uint8_t*    Puntero al buffer creado. El llamante es responsable de liberar la memoria.
+ */
+uint8_t* create_data_buffer(const FilePackage *package, size_t *buffer_size);
 
 
 /**
