@@ -1,36 +1,36 @@
 #include "utils.h"
 #include "logger.h"
 
+
 /**
- * @brief Ajusta la representación endian de un valor de 32 bits y lo almacena en un buffer.
- *
- * Esta función toma un valor de 32 bits almacenado en `size` y lo convierte
- * al formato endian correcto según el sistema y la configuración de los datos.
- * Si el sistema y los datos tienen un endianess diferente, la función ajusta el valor
- * y lo almacena en `buffer` en el orden apropiado.
- *
- * @param buffer    Puntero al buffer donde se almacenará el valor convertido en formato endian.
- *                  El buffer debe tener al menos 4 bytes.
- * @param size      El valor de 32 bits a convertir según el endianess.
- */
-void adjust_data_endianness(uint8_t *buffer, uint32_t size) {
-    // Verificar si el endianess del sistema difiere del endianess de los datos.
+* @brief Ajusta la endianess de un buffer de datos de 4 bytes según el sistema.
+*
+* Esta función verifica si el sistema y los datos almacenados tienen la misma endianess
+* (es decir, si son ambos big-endian o little-endian). Si hay una discrepancia entre la
+* endianess del sistema y la de los datos, la función invierte el orden de los bytes en el
+* buffer para ajustarlo a la endianess del sistema.
+*
+* @param buffer Puntero al buffer de datos de 4 bytes que será ajustado en caso de discrepancia
+*               de endianess. Se espera que el buffer contenga exactamente 4 bytes de datos.
+*/
+void adjust_data_endianness(uint8_t *buffer) {
     if (IS_SYSTEM_BIG_ENDIAN() != IS_DATA_BIG_ENDIAN) {
         LOG(DEBUG, "[Endianess] Conversion needed: data stored in %s-endian, system is %s-endian.",
             IS_DATA_BIG_ENDIAN ? "big" : "little",
-            IS_SYSTEM_BIG_ENDIAN() ? "big" : "little")
+            IS_SYSTEM_BIG_ENDIAN() ? "big" : "little");
 
-        buffer[3] = (size >> 24) & 0xFF;
-        buffer[2] = (size >> 16) & 0xFF;
-        buffer[1] = (size >> 8) & 0xFF;
-        buffer[0] = size & 0xFF;
+        // Invertir el orden de los 4 bytes
+        uint8_t temp = buffer[0];
+        buffer[0] = buffer[3];
+        buffer[3] = temp;
+
+        temp = buffer[1];
+        buffer[1] = buffer[2];
+        buffer[2] = temp;
+
+        LOG(DEBUG, "[Endianess] Data endianess adjusted.");
     } else {
-        LOG(DEBUG, "[Endianess] No conversion needed: data and system share endianess.")
-
-        buffer[0] = (size >> 24) & 0xFF;
-        buffer[1] = (size >> 16) & 0xFF;
-        buffer[2] = (size >> 8) & 0xFF;
-        buffer[3] = size & 0xFF;
+        LOG(DEBUG, "[Endianess] No conversion needed: data and system share endianess.");
     }
 }
 

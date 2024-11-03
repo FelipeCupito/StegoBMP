@@ -32,7 +32,6 @@ typedef struct {
     EncryptionAlgorithm encryption_algo;    // Encryption algorithm (aes128, aes192, aes256, 3des)
     EncryptionMode encryption_mode;         // Encryption mode (ecb, cfb, ofb, cbc)
     char password[MAX_PASSWORD_LENGTH];     // Password for encryption/decryption
-    //LogLevel log_level;                     // Log level (DEBUG, INFO, ERROR, FATAL)
 } ProgramOptions;
 
 /**

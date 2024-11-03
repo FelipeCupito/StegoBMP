@@ -4,9 +4,6 @@
 #include <string.h>
 #include <stdio.h>
 
-#define SUCCEEDED 1
-#define FAILED    0
-
 typedef enum {
     MODE_NONE,
     MODE_EMBED,
