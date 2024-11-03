@@ -51,7 +51,7 @@ static const StegOperations steg_operations[] = {
  */
 bool embed_bits_generic(BMPImage *bmp, const uint8_t *data, size_t num_bits, size_t *offset, int bits_per_component);
 bool extract_bits_generic(const BMPImage *bmp, size_t num_bits, uint8_t *buffer, size_t *offset, int bits_per_component);
-size_t extract_data_size(const BMPImage *bmp, StegAlgorithm steg_alg, size_t *offset, void *context);
+uint32_t extract_data_size(const BMPImage *bmp, StegAlgorithm steg_alg, size_t *offset, void *context);
 bool extract_extension(const BMPImage *bmp, StegAlgorithm steg_alg, char *ext_buffer, size_t *offset, void *context);
 /****************************************
  ****  ALGORITMOS DE ESTEGANOGRAFÍA  ****
@@ -355,7 +355,7 @@ bool extract_bits_lsbi(const BMPImage *bmp, size_t num_bits, uint8_t *buffer, si
 //        (pattern_map >> 3) & 0x01,
 //        (pattern_map >> 2) & 0x01,
 //        (pattern_map >> 1) & 0x01,
-//        pattern_map & 0x01);
+//        pattern_map & 0x01)
 
     // Extraer los datos embebidos y aplicar la inversión si es necesario
     for (; component_index < max_component_index && bit_extracted_count < num_bits; component_index++) {
@@ -366,13 +366,15 @@ bool extract_bits_lsbi(const BMPImage *bmp, size_t num_bits, uint8_t *buffer, si
         }
 
         uint8_t component = *comp.component_ptr;
-        uint8_t pattern = (component >> 1) & 0x03;
+        uint8_t pattern = (component >> 1) & 0x03; // el patron de esta componete
 
         // Verificar si este patrón fue invertido usando el pattern_map
-        if ((pattern_map & (1 << pattern)) != 0) {  // Aseguramos solo invertir si el patrón está activado
-            //LOG(DEBUG, "[Stego Extract] Inverting bit for component %zu, pattern: %02X, original: %02X", component_index, pattern, component);
-            component ^= 0x01; // Invertir el LSB
+        if ((pattern_map & (1 << (3 - pattern))) != 0) {  // Aseguramos solo invertir si el patrón está activado
+            //LOG(DEBUG, "[Stego Extract] Invirtiendo bit para componente %zu, patrón: %02X, valor original: %02X\n", component_index, pattern, component);
+            component ^= 0x01;  // Invertir el LSB
+            //LOG(DEBUG, "[Stego Extract ] Valor tras inversión: %02X\n", component);
         }
+
         // Extraer el LSB y almacenar en el buffer de bits
         uint8_t bit = component & 0x01;
         buffer[bit_extracted_count / 8] |= (bit << (7 - (bit_extracted_count % 8)));
@@ -453,7 +455,7 @@ bool check_capacity_lsbi(const BMPImage *bmp, size_t num_bits) {
  * @param context       Contexto adicional necesario para la extracción.
  * @return size_t       Tamaño de los datos extraídos, o 0 en caso de error.
  */
-size_t extract_data_size(const BMPImage *bmp, StegAlgorithm steg_alg, size_t *offset, void *context) {
+uint32_t extract_data_size(const BMPImage *bmp, StegAlgorithm steg_alg, size_t *offset, void *context) {
     if (bmp == NULL || bmp->data == NULL || offset == NULL || (steg_alg == STEG_LSBI && context == NULL)) {
         LOG(ERROR, "Argumentos inválidos en extract_data_size.")
         return 0;
@@ -466,9 +468,8 @@ size_t extract_data_size(const BMPImage *bmp, StegAlgorithm steg_alg, size_t *of
         return 0;
     }
 
-    // Ajustar el endianness del tamaño extraído
-    uint32_t temp = extracted_size;
-    adjust_data_endianness((uint8_t *) &extracted_size, temp);
+    // Ajustar la endianidad del tamaño extraído
+    adjust_data_endianness((uint8_t *)&extracted_size);
 
     LOG(INFO, "[Stego Extract] Tamaño de datos extraído: %u", extracted_size)
     return extracted_size;
@@ -638,30 +639,32 @@ uint8_t* extract_encrypted_data(const BMPImage *bmp, StegAlgorithm steg_alg, siz
             LOG(ERROR, "Error al extraer pattern_map con LSB1 en extract_encrypted_data.")
             return NULL;
         }
-        LOG(INFO, "[Stego Extract] Pattern Map: %02X", pattern_map)
+        LOG(DEBUG, "[Stego Extract] Patron obtenido: %d%d%d%d%d%d%d%d",
+            (pattern_map >> 7) & 0x01,
+            (pattern_map >> 6) & 0x01,
+            (pattern_map >> 5) & 0x01,
+            (pattern_map >> 4) & 0x01,
+            (pattern_map >> 3) & 0x01,
+            (pattern_map >> 2) & 0x01,
+            (pattern_map >> 1) & 0x01,
+            pattern_map & 0x01)
     }
 
     // Extraer el tamaño cifrado (4 bytes)
-    uint32_t encrypted_size = 0;
-    if (!steg_operations[steg_alg].extract(bmp, HIDDEN_DATA_SIZE_FIELD, (uint8_t *)&encrypted_size, &offset, &pattern_map)) {
-        LOG(ERROR, "Error al extraer tamaño cifrado con el algoritmo especificado en extract_encrypted_data.")
+    uint32_t encrypted_size = extract_data_size(bmp, steg_alg, &offset, &pattern_map);
+    if(encrypted_size == 0){
+        LOG(ERROR, "Error al extraer el tamaño de los datos cifrados en extract_encrypted_data.")
         return NULL;
     }
-    // Verificar que el tamaño cifrado sea razonable
-    if (encrypted_size == 0 || encrypted_size > bmp->data_size) {
-        LOG(ERROR, "Tamaño cifrado inválido: %u bytes.", encrypted_size)
-        return NULL;
-    }
-    LOG(INFO, "[Stego Extract] Tamaño de los datos cifrados: %u bytes.", encrypted_size)
+    LOG(INFO, "[Stego Extract] Tamaño de los datos cifrados extraídos: %u bytes.", encrypted_size)
 
     // Extraer los datos cifrados
-    size_t data_bits = BYTES_TO_BITS(encrypted_size);
     encrypted_data = (uint8_t *)malloc(encrypted_size);
     if (encrypted_data == NULL) {
         LOG(ERROR, "No se pudo asignar memoria para los datos cifrados en extract_encrypted_data.")
         return NULL;
     }
-    if (!steg_operations[steg_alg].extract(bmp, data_bits, encrypted_data, &offset, &pattern_map)) {
+    if (!steg_operations[steg_alg].extract(bmp, BYTES_TO_BITS(encrypted_size), encrypted_data, &offset, &pattern_map)) {
         LOG(ERROR, "Error al extraer datos cifrados con el algoritmo especificado en extract_encrypted_data.")
         free(encrypted_data);
         return NULL;
