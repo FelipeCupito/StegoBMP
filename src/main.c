@@ -6,7 +6,7 @@
 #include "./include/arguments.h"
 #include "./include/file_package.h"
 #include "./include/stego_bmp.h"
-#include "./include/cryptoUtils.h"
+#include "./include/crypto.h"
 
 int main(int argc, char *argv[]) {
     // Parse command-line arguments
