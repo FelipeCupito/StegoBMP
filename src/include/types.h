@@ -36,4 +36,5 @@ typedef enum EncryptionMode{
     ENC_MODE_CBC
 } EncryptionMode;
 
+
 #endif //STEGOBMP_TYPES_H

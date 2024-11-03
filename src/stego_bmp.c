@@ -51,7 +51,6 @@ static const StegOperations steg_operations[] = {
  */
 bool embed_bits_generic(BMPImage *bmp, const uint8_t *data, size_t num_bits, size_t *offset, int bits_per_component);
 bool extract_bits_generic(const BMPImage *bmp, size_t num_bits, uint8_t *buffer, size_t *offset, int bits_per_component);
-void adjust_data_endianness(uint8_t * buffer, uint32_t size);
 size_t extract_data_size(const BMPImage *bmp, StegAlgorithm steg_alg, size_t *offset, void *context);
 bool extract_extension(const BMPImage *bmp, StegAlgorithm steg_alg, char *ext_buffer, size_t *offset, void *context);
 /****************************************
@@ -442,32 +441,6 @@ bool check_capacity_lsbi(const BMPImage *bmp, size_t num_bits) {
 
     // Solo uso dos componentes por pixel y por cada uno almaceno 2 bit
     return bmp->width * bmp->height * 2 * 2 >= num_bits + PATTERN_MAP_SIZE;
-}
-
-/**
- * @brief Ajusta la representación endian de un valor de 32 bits y lo almacena en un buffer.
- *
- * @param buffer    Puntero al buffer donde se almacenará el valor convertido en formato endian.
- *                  El buffer debe tener al menos 4 bytes.
- * @param size      El valor de 32 bits a convertir según el endianess.
- */
-void adjust_data_endianness(uint8_t * buffer, uint32_t size) {
-    if (IS_SYSTEM_BIG_ENDIAN() != IS_DATA_BIG_ENDIAN) {
-        LOG(DEBUG, "[Stego Extract] Conversion necesaria: datos almacenados en %s-endian, sistema en %s-endian.",
-            IS_DATA_BIG_ENDIAN ? "big" : "little",
-            IS_SYSTEM_BIG_ENDIAN() ? "big" : "little")
-        buffer[3] = (size >> 24) & 0xFF;
-        buffer[2] = (size >> 16) & 0xFF;
-        buffer[1] = (size >> 8) & 0xFF;
-        buffer[0] = size & 0xFF;
-
-    }else{
-        LOG(DEBUG, "[Stego Extract] No se requiere conversion: datos y sistema comparten endianess.")
-        buffer[0] = (size >> 24) & 0xFF;
-        buffer[1] = (size >> 16) & 0xFF;
-        buffer[2] = (size >> 8) & 0xFF;
-        buffer[3] = size & 0xFF;
-    }
 }
 
 /**

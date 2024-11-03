@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "logger.h"
+#include "utils.h"
 
 #define BMP_HEADER_SIZE 54  // Total size of the BMP header for V3 format
 

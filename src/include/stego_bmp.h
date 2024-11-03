@@ -10,10 +10,7 @@
 #include "file_package.h"
 #include "logger.h"
 #include "types.h"
-
-#define IS_DATA_BIG_ENDIAN false   // Cambia esta macro según el formato de los datos
-#define BYTES_TO_BITS(bytes) ((bytes) * 8)
-#define IS_SYSTEM_BIG_ENDIAN() ( (*(uint16_t*)"\0\xff" < 0x100) )
+#include "utils.h"
 
 /**
  * @brief Inserta datos secretos en una imagen BMP utilizando el algoritmo de esteganografía especificado.
@@ -64,7 +61,6 @@ bool embed_bits_generic(BMPImage *bmp, const uint8_t *data, size_t num_bits, siz
 bool extract_bits_generic(const BMPImage *bmp, size_t num_bits, uint8_t *buffer, size_t *offset, int bits_per_component);
 
 size_t extract_data_size(const BMPImage *bmp, StegAlgorithm steg_alg, size_t *offset, void *context);
-void format_data_endian(uint8_t *data, size_t size);
 bool extract_extension(const BMPImage *bmp, StegAlgorithm steg_alg, char *ext_buffer, size_t *offset, void *context);
 #endif
 

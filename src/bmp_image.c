@@ -223,17 +223,6 @@ Component get_component_by_index(const BMPImage *bmp, size_t index) {
 
     // Determinar el tipo de color basándonos en la posición relativa (offset en el píxel)
     result.color = offset_in_row % 3;
-//    switch (offset_in_row % 3) {
-//        case 0:
-//            result.color = BLUE;
-//            break;
-//        case 1:
-//            result.color = GREEN;
-//            break;
-//        case 2:
-//            result.color = RED;
-//            break;
-//    }
 
     return result;
 }

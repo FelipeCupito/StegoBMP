@@ -8,6 +8,7 @@
 #include <stdbool.h>
 #include "logger.h"
 #include "types.h"
+#include "utils.h"
 
 /**
  * @brief Structure to hold message file data in memory.
@@ -92,15 +93,6 @@ int create_file_from_package(const char *file_name, FilePackage *package);
  * */
 int create_file_from_raw_data(const char *file_name, const uint8_t *data);
 
-
-#ifdef TESTING
-/**
- * Only used for testing purposes.
- */
-size_t get_file_size(FILE *file);
-uint8_t* get_file_extension(const char *file_name);
-void format_data_endian(uint32_t value, uint8_t *buffer);
-#endif
 
 
 #endif //STEGOBMP_FILE_PACKAGE_H
