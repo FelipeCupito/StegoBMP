@@ -10,7 +10,7 @@
 #define BYTES_TO_BITS(bytes) ((bytes) * 8)
 #define EXTENSION_SIZE 16
 
-#define IS_DATA_BIG_ENDIAN true                         // Es el endianess en que se embeben los datos y se espera que estén almacenados.
+#define IS_DATA_BIG_ENDIAN true                       // Es el endianess en que se embeben los datos y se espera que estén almacenados.
 #define IS_SYSTEM_BIG_ENDIAN() (is_system_big_endian()) // Es el endianess del sistema en que se ejecuta el programa.
 
 /**
