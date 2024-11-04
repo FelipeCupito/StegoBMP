@@ -88,7 +88,7 @@ int main(int argc, char *argv[]) {
             // Create a FilePackage from the decrypted data
             package = new_file_package_from_data(decrypted_data);
             if (package == NULL) {
-                LOG(ERROR, "Error creating FilePackage from decrypted data.")
+                LOG(ERROR, "Error creating FilePackage from de crypted data.")
                 return 1;
             }
         }

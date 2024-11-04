@@ -100,14 +100,16 @@ uint8_t* embed_data_from_file(const char *file_path, size_t *buffer_size) {
         return NULL;
     }
 
-    // set the size of the file
-    //adjust_data_endianness((uint8_t *)&file_size, sizeof(file_size));
-    adjust_data_endianness((uint8_t *) &file_size);
-    LOG(DEBUG, "file size %d", (uint32_t)file_size)
-
-    buffer[buffer_index]  = (uint32_t) file_size;
+    // Set the size of the file in the buffer
+    *((uint32_t *)buffer) = file_size;
     buffer_index += sizeof(uint32_t);
-    LOG(DEBUG, "file size %d", (uint32_t)buffer[0])
+
+    // Adjust endianness of the file size stored in the buffer if needed
+    adjust_data_endianness(buffer);
+
+    // Verify if the file size was set correctly
+    uint32_t stored_file_size = *((uint32_t *)buffer);
+    LOG(DEBUG, "[File] Stored file size in buffer: %u", stored_file_size)
 
     // Read the file data
     if (fread(&buffer[buffer_index], 1, file_size, file) != file_size){
