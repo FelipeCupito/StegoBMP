@@ -74,9 +74,9 @@ BMPImage* copy_bmp(BMPImage *bmp);
 /**
  * @brief Obtiene un puntero al componente de color (byte) en un BMP según el índice de componente global.
  *
- * @param bmp       Puntero a la estructura BMPImage.
- * @param index     Índice del componente de color (byte) a acceder.
- * @return uint8_t* Puntero al componente de color (modificable).
+ * @param bmp        Puntero a la estructura BMPImage.
+ * @param index      Índice del componente de color (byte) a acceder.
+ * @return Component Puntero al componente y su color correspondiente (modificable).
  */
 Component get_component_by_index(const BMPImage *bmp, size_t index);
 

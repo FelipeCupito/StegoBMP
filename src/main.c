@@ -36,7 +36,13 @@ int main(int argc, char *argv[]) {
         // Encrypt the data if necessary
         if(arguments.encryption_mode != ENC_NONE){
             LOG(INFO, "Encrypting the data.")
-            emd_data = crypto_encrypt(emd_data, size, arguments.encryption_algo, arguments.encryption_mode, arguments.password, &size);
+            uint8_t* temp = crypto_encrypt(emd_data, size, arguments.encryption_algo, arguments.encryption_mode, arguments.password, &size);
+            if(temp == NULL){
+                LOG(ERROR, "Error encrypting the data.")
+                return 1;
+            }
+            free(emd_data);
+            emd_data = temp;
         }
 
         // Embed the data into the BMP image
@@ -48,6 +54,9 @@ int main(int argc, char *argv[]) {
             LOG(ERROR, "Error saving the BMP file.")
             return 1;
         }
+
+        free(emd_data);
+        free(bmp);
 
 
     } else if (arguments.mode == MODE_EXTRACT) {
@@ -66,30 +75,38 @@ int main(int argc, char *argv[]) {
             package = extract_data(bmp, arguments.steg_algorithm);
             if (package == NULL) {
                 LOG(ERROR, "Error extracting data.")
+                free(bmp);
                 return 1;
             }
+
         } else{
             LOG(INFO, "Decrypting the extracted data.")
             size_t extracted_size = 0;
             uint8_t *encrypted_data = extract_encrypted_data(bmp, arguments.steg_algorithm, &extracted_size);
             if (encrypted_data == NULL) {
                 LOG(ERROR, "Error extracting encrypted data.")
+                free(bmp);
                 return 1;
             }
 
             // Decrypt the extracted data
             uint8_t *decrypted_data = crypto_decrypt(encrypted_data, extracted_size, arguments.encryption_algo, arguments.encryption_mode, (const uint8_t *)arguments.password, &extracted_size);
+            free(encrypted_data);
             if (decrypted_data == NULL) {
                 LOG(ERROR, "Error decrypting the extracted data.")
+                free(bmp);
                 return 1;
             }
 
             // Create a FilePackage from the decrypted data
             package = new_file_package_from_data(decrypted_data);
+            free(decrypted_data);
             if (package == NULL) {
                 LOG(ERROR, "Error creating FilePackage from de crypted data.")
+                free(bmp);
                 return 1;
             }
+
         }
 
         // Save the extracted data to a file
@@ -97,6 +114,9 @@ int main(int argc, char *argv[]) {
             LOG(ERROR, "Error creating the output file.")
             return 1;
         }
+
+        free(package);
+        free(bmp);
 
         LOG(INFO, "Output file created successfully.")
     }else{

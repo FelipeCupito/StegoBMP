@@ -54,8 +54,6 @@ uint8_t* embed_data_from_file(const char *file_path, size_t *buffer_size);
  */
 FilePackage *new_file_package_from_data(const uint8_t *data);
 
-
-
 /**
  * @brief Crea un buffer que contiene el tamaño de los datos, los datos y la extensión concatenados.
  *
@@ -64,7 +62,6 @@ FilePackage *new_file_package_from_data(const uint8_t *data);
  * @return uint8_t*    Puntero al buffer creado. El llamante es responsable de liberar la memoria.
  */
 uint8_t* create_data_buffer(const FilePackage *package, size_t *buffer_size);
-
 
 /**
  * Free the memory associated with a FilePackage.
