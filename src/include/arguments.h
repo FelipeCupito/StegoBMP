@@ -11,7 +11,7 @@
 // Default values for encryption algorithm and mode, and log level
 #define DEFAULT_ENCRYPTION_ALGO ENC_AES128      // Default encryption algorithm: AES128
 #define DEFAULT_ENCRYPTION_MODE ENC_MODE_CBC    // Default encryption mode: CBC
-#define DEFAULT_LOG_LEVEL NONE                  // Default log level: INFO
+#define DEFAULT_LOG_LEVEL INFO                  // Default log level: INFO
 
 // Maximum allowed password length
 #define MAX_PASSWORD_LENGTH 128

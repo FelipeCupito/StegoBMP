@@ -467,11 +467,11 @@ uint32_t extract_data_size(const BMPImage *bmp, StegAlgorithm steg_alg, size_t *
         LOG(ERROR, "Error al extraer el tamaño de los datos.")
         return 0;
     }
+    LOG(DEBUG, "[Stego Extract] Tamaño de datos extraído (antes del ajuste): %u", extracted_size)
 
     // Ajustar la endianidad del tamaño extraído
-    adjust_data_endianness((uint8_t *)&extracted_size);
+    adjust_data_endianness((uint8_t *) &extracted_size);
 
-    LOG(INFO, "[Stego Extract] Tamaño de datos extraído: %u", extracted_size)
     return extracted_size;
 }
 

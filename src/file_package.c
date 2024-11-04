@@ -206,7 +206,7 @@ FilePackage *new_file_package_from_data(const uint8_t *data){
         return NULL;
     }
 
-    LOG(INFO, "FilePackage created successfully: size = %u, extension = %s", file->size, file->extension)
+    LOG(INFO, "[File] FilePackage created successfully: size = %u, extension = %s", file->size, file->extension)
     return file;
 }
 
@@ -302,7 +302,7 @@ int create_file_from_package(const char *filename, FilePackage *package) {
     }
 
     // Successfully written the file
-    LOG(INFO, "Successfully created file %s with size %u bytes.", full_filename, package->size)
+    LOG(INFO, "[File] Successfully created file %s with size %u bytes.", full_filename, package->size)
 
     // Clean up
     fclose(file);
@@ -354,7 +354,7 @@ void print_file_package(FilePackage *package) {
             printf("%02X ", package->data[i]);
         }
         printf("\n");
-        LOG(INFO, "Printed file package: size = %u, extension = %s", package->size, package->extension)
+        LOG(INFO, "[File] Printed file package: size = %u, extension = %s", package->size, package->extension)
     } else {
         LOG(ERROR, "Invalid FilePackage pointer.")
     }

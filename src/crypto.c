@@ -146,8 +146,29 @@ uint8_t* crypto_encrypt(const uint8_t *data, size_t size, EncryptionAlgorithm en
     EVP_CIPHER_CTX_free(ctx);
     free(key_iv);
 
-    *encrypted_size = ciphertext_len;
-    return ciphertext;
+    *encrypted_size = sizeof(uint32_t) + ciphertext_len;
+
+    // Concatenar el tamaño al principio del ciphertext
+    uint8_t *final_ciphertext = malloc(*encrypted_size);
+    if (!final_ciphertext) {
+        LOG(ERROR, "Memory allocation failed for final_ciphertext.");
+        free(ciphertext);
+        return NULL;
+    }
+
+    // Crear un buffer temporal para `ciphertext_len` y ajustar la endianess
+    uint8_t temp_size_buffer[sizeof(uint32_t)];
+    memcpy(temp_size_buffer, &ciphertext_len, sizeof(ciphertext_len));
+    adjust_data_endianness(temp_size_buffer);
+
+    // Copiar el tamaño ajustado en endianess al inicio del `final_ciphertext`
+    memcpy(final_ciphertext, temp_size_buffer, sizeof(uint32_t));
+
+    // Copiar los datos cifrados después del tamaño
+    memcpy(final_ciphertext + sizeof(uint32_t), ciphertext, ciphertext_len);
+    free(ciphertext);
+
+    return final_ciphertext;
 }
 
 uint8_t* crypto_decrypt(const uint8_t *encrypted_data, size_t encrypted_size, EncryptionAlgorithm encryption, EncryptionMode mode, const uint8_t *password, size_t *decrypted_size) {

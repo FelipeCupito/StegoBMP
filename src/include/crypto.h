@@ -12,6 +12,7 @@
 #include "bmp_image.h"
 #include "types.h"
 #include "file_package.h"
+#include "utils.h"
 
 /**
  * @brief Encripta datos utilizando el algoritmo y modo especificado.

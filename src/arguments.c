@@ -172,36 +172,36 @@ void log_program_options(const ProgramOptions *options) {
     }
 
     LOG(INFO, "[arguments] Arguments parsed successfully.")
-    LOG(DEBUG, "[arguments] Program options:")
+    LOG(INFO, "[arguments] Program options:")
 
-    LOG(DEBUG, "\t |-> Operation mode: %s", operation_mode_to_string(options->mode))
+    LOG(INFO, "\t |-> Operation mode: %s", operation_mode_to_string(options->mode))
 
     if (options->input_file != NULL) {
-        LOG(DEBUG, "\t |-> Input file: %s", options->input_file)
+        LOG(INFO, "\t |-> Input file: %s", options->input_file)
     } else {
-        LOG(DEBUG, "\t |-> Input file: None")
+        LOG(INFO, "\t |-> Input file: None")
     }
 
     if (options->input_bmp_file != NULL) {
-        LOG(DEBUG, "\t |-> Input BMP file: %s", options->input_bmp_file)
+        LOG(INFO, "\t |-> Input BMP file: %s", options->input_bmp_file)
     } else {
-        LOG(DEBUG, "\t |-> Input BMP file: None")
+        LOG(INFO, "\t |-> Input BMP file: None")
     }
 
     if (options->output_file != NULL) {
-        LOG(DEBUG, "\t |-> Output BMP file: %s", options->output_file)
+        LOG(INFO, "\t |-> Output BMP file: %s", options->output_file)
     } else {
-        LOG(DEBUG, "\t |-> Output BMP file: None")
+        LOG(INFO, "\t |-> Output BMP file: None")
     }
 
-    LOG(DEBUG, "\t |-> Steganography algorithm: %s", steg_algorithm_to_string(options->steg_algorithm))
+    LOG(INFO, "\t |-> Steganography algorithm: %s", steg_algorithm_to_string(options->steg_algorithm))
     LOG(DEBUG, "\t |-> Encryption algorithm: %s", encryption_algorithm_to_string(options->encryption_algo))
     LOG(DEBUG, "\t |-> Encryption mode: %s", encryption_mode_to_string(options->encryption_mode))
 
     if (strlen(options->password) > 0) {
-        LOG(DEBUG, "\t |-> Password: %s", options->password)
+        LOG(INFO, "\t |-> Password: %s", options->password)
     } else {
-        LOG(DEBUG, "\t |-> Password: None")
+        LOG(INFO, "\t |-> Password: None")
     }
 }
 

@@ -48,7 +48,6 @@ int main(int argc, char *argv[]) {
             LOG(ERROR, "Error saving the BMP file.")
             return 1;
         }
-        LOG(INFO, "BMP file saved successfully.")
 
 
     } else if (arguments.mode == MODE_EXTRACT) {
