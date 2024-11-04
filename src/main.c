@@ -56,7 +56,7 @@ int main(int argc, char *argv[]) {
         }
 
         free(emd_data);
-        free(bmp);
+        free_bmp(bmp);
 
 
     } else if (arguments.mode == MODE_EXTRACT) {
@@ -115,8 +115,8 @@ int main(int argc, char *argv[]) {
             return 1;
         }
 
-        free(package);
-        free(bmp);
+        free_file_package(package);
+        free_bmp(bmp);
 
         LOG(INFO, "Output file created successfully.")
     }else{
