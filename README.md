@@ -120,4 +120,8 @@ Esto eliminará los archivos binarios generados y te permitirá comenzar desde c
 
 ## Contribuciones
 
-falta...
+Cupito, Felipe - 60058
+
+Podgorny, Andres - 60570
+
+De Caro, Guido - 61590
