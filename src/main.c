@@ -39,6 +39,7 @@ int main(int argc, char *argv[]) {
             uint8_t* temp = crypto_encrypt(emd_data, size, arguments.encryption_algo, arguments.encryption_mode, arguments.password, &size);
             if(temp == NULL){
                 LOG(ERROR, "Error encrypting the data.")
+                free_bmp(bmp);
                 return 1;
             }
             free(emd_data);
@@ -52,12 +53,13 @@ int main(int argc, char *argv[]) {
         int save_result = save_bmp_file(arguments.output_file, bmp);
         if (save_result != 0) {
             LOG(ERROR, "Error saving the BMP file.")
+            free_bmp(bmp);
+            free(emd_data);
             return 1;
         }
 
         free(emd_data);
         free_bmp(bmp);
-
 
     } else if (arguments.mode == MODE_EXTRACT) {
         LOG(INFO, "Extraction mode selected.")
@@ -75,7 +77,7 @@ int main(int argc, char *argv[]) {
             package = extract_data(bmp, arguments.steg_algorithm);
             if (package == NULL) {
                 LOG(ERROR, "Error extracting data.")
-                free(bmp);
+                free_bmp(bmp);
                 return 1;
             }
 
@@ -85,7 +87,7 @@ int main(int argc, char *argv[]) {
             uint8_t *encrypted_data = extract_encrypted_data(bmp, arguments.steg_algorithm, &extracted_size);
             if (encrypted_data == NULL) {
                 LOG(ERROR, "Error extracting encrypted data.")
-                free(bmp);
+                free_bmp(bmp);
                 return 1;
             }
 
@@ -94,7 +96,7 @@ int main(int argc, char *argv[]) {
             free(encrypted_data);
             if (decrypted_data == NULL) {
                 LOG(ERROR, "Error decrypting the extracted data.")
-                free(bmp);
+                free_bmp(bmp);
                 return 1;
             }
 
@@ -103,7 +105,7 @@ int main(int argc, char *argv[]) {
             free(decrypted_data);
             if (package == NULL) {
                 LOG(ERROR, "Error creating FilePackage from de crypted data.")
-                free(bmp);
+                free_bmp(bmp);
                 return 1;
             }
 
@@ -112,6 +114,8 @@ int main(int argc, char *argv[]) {
         // Save the extracted data to a file
         if(!create_file_from_package(arguments.output_file, package)){
             LOG(ERROR, "Error creating the output file.")
+            free_file_package(package);
+            free_bmp(bmp);
             return 1;
         }
 
