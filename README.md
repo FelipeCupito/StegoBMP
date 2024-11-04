@@ -118,6 +118,15 @@ make clean
 
 Esto eliminará los archivos binarios generados y te permitirá comenzar desde cero.
 
+## Consideraciones
+Por lo estipulado en la consigna dada por la catedra se asume que toda la informacion tanto encriptada como desencriptada se va a encontrar en formato bigEndian.
+En caso de no ser asi se tiene que ir al archivo **utils.h** y cambiar el valor booleano de la linea 13 de true a false.
+
+```bash
+#define IS_DATA_BIG_ENDIAN true >> #define IS_DATA_BIG_ENDIAN false
+```
+
+
 ## Contribuciones
 
 Cupito, Felipe - 60058
