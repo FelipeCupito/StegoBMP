@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <assert.h>
 #include "../src/include/bmp_image.h"
-#include "../src/include/utils.h"
 #include "test_utils.c"
 
 
@@ -197,7 +196,7 @@ void test_copy_bmp() {
     free_bmp(original_bmp);
     free_bmp(copied_bmp);
 
-    LOG(INFO, "Prueba pasada: copy_bmp funciona correctamente.");
+    LOG(INFO, "Prueba pasada: copy_bmp funciona correctamente.")
 }
 
 /**

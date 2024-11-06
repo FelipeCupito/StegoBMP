@@ -1,8 +1,25 @@
 # StegoBMP
 
-## Descripción del Proyecto
+## Descripción
 
-**StegoBMP** es un proyecto que permite trabajar con archivos de imagen BMP y realizar operaciones de esteganografía. El proyecto está desarrollado en C y utiliza **CMake** para la configuración y compilación del código, y **CTest** para realizar pruebas unitarias.
+**StegoBMP** es una herramienta de esteganografía en C que permite ocultar y extraer archivos en imágenes BMP mediante varios algoritmos de inserción en el bit menos significativo (LSB). Soporta cifrado opcional utilizando OpenSSL con métodos como AES y Triple DES. Este programa permite realizar las operaciones de **ocultamiento** y **extracción** en archivos BMP de 24 bits por píxel sin compresión.
+
+## Objetivos
+
+- **Ocultar archivos** en imágenes BMP usando algoritmos de esteganografía (LSB1, LSB4, LSBI).
+- **Extraer archivos** ocultos de una imagen BMP.
+- **Encriptación** opcional de los datos ocultos utilizando OpenSSL.
+
+## Estructura del Proyecto
+
+- **`arguments.h`**: Define las opciones de línea de comandos, como el archivo de entrada, salida, algoritmo de esteganografía y cifrado.
+- **`bmp_image.h`**: Maneja la lectura y escritura de archivos BMP, y valida que sean del formato adecuado.
+- **`crypto.h`**: Proporciona funciones de cifrado y descifrado utilizando OpenSSL.
+- **`file_package.h`**: Permite gestionar la carga, empaquetado y extracción de archivos en memoria.
+- **`stego_embed.h`**: Funciones principales de esteganografía para insertar y extraer datos de las imágenes BMP.
+- **`types.h`**: Enumera tipos y estructuras clave, como modos de operación y algoritmos de cifrado.
+- **`utils.h`**: Funciones auxiliares para ajustar la endianess, manejo de archivos y obtención de extensiones.
+
 
 ## Requisitos Previos
 
@@ -53,84 +70,60 @@ brew install cmake
 
 Puedes descargar CMake desde el [sitio oficial de CMake](https://cmake.org/download/) y seguir las instrucciones de instalación.
 
-## Instrucciones para Compilar el Proyecto
+## Compilación e Instalación
 
-### Paso 1: Crear el Directorio de Construcción
-
-Primero, necesitas crear un directorio `build/` donde se generarán los archivos de construcción.
+Primero, asegúrese de contar con OpenSSL y CMake instalados. Para compilar el programa, ejecute:
 
 ```bash
 mkdir build
 cd build
-```
-
-### Paso 2: Configurar el Proyecto con CMake
-
-Dentro del directorio `build`, ejecuta el siguiente comando para que CMake configure el proyecto:
-
-```bash
 cmake ..
-```
-
-Esto leerá el archivo `CMakeLists.txt` y configurará todo lo necesario para compilar el proyecto y los tests.
-
-### Paso 3: Compilar el Proyecto y los Tests
-
-Una vez que el proyecto esté configurado, compílalo ejecutando:
-
-```bash
 make
 ```
 
-Esto compilará tanto el ejecutable principal **StegoBMP** como el ejecutable de pruebas **test_file_handler**.
+Esto generará el ejecutable `stegobmp`.
 
-## Instrucciones para Ejecutar el Programa
+## Uso
 
-Después de compilar, puedes ejecutar el programa principal **StegoBMP** desde el directorio `build`:
+El programa **StegoBMP** permite dos modos de operación: ocultamiento y extracción.
 
-```bash
-./StegoBMP
-```
+### 1. Ocultamiento
 
-Este comando ejecutará el código principal del programa.
-
-## Instrucciones para Ejecutar las Pruebas
-
-El proyecto incluye pruebas unitarias que puedes ejecutar utilizando **CTest**. Aquí te muestro dos formas de hacerlo.
-
-### Usar CTest
-
-Para correr las pruebas, simplemente ejecuta el siguiente comando desde el directorio `build`:
+Para ocultar un archivo en una imagen BMP, utilice el comando `-embed`:
 
 ```bash
-ctest --verbose
+./stegobmp -embed -in <archivo_a_ocultar> -p <imagen_bmp> -out <imagen_bmp_salida> -steg <LSB1 | LSB4 | LSBI> [-a <aes128 | aes192 | aes256 | 3des>] [-m <ecb | cfb | ofb | cbc>] [-pass <contraseña>]
 ```
 
-Esto ejecutará todas las pruebas registradas y te mostrará los resultados con detalles.
-
-## Limpiar los Archivos Generados
-
-Si necesitas limpiar los archivos de compilación generados por **CMake**, puedes ejecutar el siguiente comando:
+#### Ejemplo
 
 ```bash
-make clean
+./stegobmp -embed -in mensaje.txt -p imagen.bmp -out imagen_oculta.bmp -steg LSBI -a aes128 -m cbc -pass "secreto"
 ```
 
-Esto eliminará los archivos binarios generados y te permitirá comenzar desde cero.
+### 2. Extracción
 
-## Consideraciones
-Por lo estipulado en la consigna dada por la catedra se asume que toda la informacion tanto encriptada como desencriptada se va a encontrar en formato bigEndian.
-En caso de no ser asi se tiene que ir al archivo **utils.h** y cambiar el valor booleano de la linea 13 de true a false.
+Para extraer un archivo oculto de una imagen BMP, use:
 
 ```bash
-#define IS_DATA_BIG_ENDIAN true >> #define IS_DATA_BIG_ENDIAN false
+./stegobmp -extract -p <imagen_bmp_con_datos_ocultos> -out <archivo_extraido> -steg <LSB1 | LSB4 | LSBI> [-a <aes128 | aes192 | aes256 | 3des>] [-m <ecb | cfb | ofb | cbc>] [-pass <contraseña>]
 ```
+
+#### Ejemplo
+
+```bash
+./stegobmp -extract -p imagen_oculta.bmp -out mensaje_extraido.txt -steg LSBI -a aes128 -m cbc -pass "secreto"
+```
+
+## Notas Adicionales
+
+- **Formato Endian**: Todos los tamaños (`size`) embebidos en los datos se almacenan en formato big-endian. Si se desea utilizar little-endian, es necesario cambiar la constante `IS_DATA_BIG_ENDIAN` a `false` en `utils.h`.
+- Solo se permite encriptar si se proporciona una contraseña.
+- Incluye un nivel de log configurable para facilitar la depuración (`DEBUG`, `INFO`, `ERROR`, `FATAL`).
 
 
 ## Contribuciones
 
-Cupito, Felipe - 60058
-
-Podgorny, Andres - 60570
-
-De Caro, Guido - 61590
+ - Cupito, Felipe - 60058
+ - Podgorny, Andres - 60570 
+ - De Caro, Guido - 61590

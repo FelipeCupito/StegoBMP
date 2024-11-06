@@ -296,7 +296,7 @@ void test_embed_bits_lsbi_large_pattern() {
             0x00, 0x00, 0x00,  // Píxel 3
             0x00, 0x00, 0x00,   // Píxel 4
 
-            // Padding o valores sin embebido en la tercera y cuarta filas
+            // Padding o valores sin embebido en la tercera y cuarta fila
             0x00, 0x00, 0x00,  // Píxel 1
             0x00, 0x00, 0x00,  // Píxel 2
             0x00, 0x00, 0x00,  // Píxel 3
@@ -578,7 +578,7 @@ void test_embed_message_lsb1() {
 // Función simplificada para probar la lógica de inversión de bits
 bool extract_bits_lsbi_mock(const uint8_t *data, size_t data_len, size_t num_bits, uint8_t *buffer, uint8_t pattern_map) {
     if (data == NULL || buffer == NULL) {
-        LOG(INFO,"Argumentos NULL en extract_bits_lsbi_mock.\n");
+        LOG(INFO,"Argumentos NULL en extract_bits_lsbi_mock.\n")
         return false;
     }
 
@@ -596,7 +596,7 @@ bool extract_bits_lsbi_mock(const uint8_t *data, size_t data_len, size_t num_bit
               (pattern_map >> 3) & 0x01,
               (pattern_map >> 2) & 0x01,
               (pattern_map >> 1) & 0x01,
-              pattern_map & 0x01);
+              pattern_map & 0x01)
 
     // Extraer los datos embebidos y aplicar la inversión si es necesario
     for (size_t i = 0; i < data_len && bit_extracted_count < num_bits; i++) {

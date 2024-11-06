@@ -366,7 +366,7 @@ bool extract_bits_lsbi(const BMPImage *bmp, size_t num_bits, uint8_t *buffer, si
         }
 
         uint8_t component = *comp.component_ptr;
-        uint8_t pattern = (component >> 1) & 0x03; // el patron de esta componete
+        uint8_t pattern = (component >> 1) & 0x03; // el patron de esta, componete
 
         // Verificar si este patrón fue invertido usando el pattern_map
         if ((pattern_map & (1 << (3 - pattern))) != 0) {  // Aseguramos solo invertir si el patrón está activado

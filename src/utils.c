@@ -17,7 +17,7 @@ void adjust_data_endianness(uint8_t *buffer) {
     if (IS_SYSTEM_BIG_ENDIAN() != IS_DATA_BIG_ENDIAN) {
         LOG(DEBUG, "[Endianess] Conversion needed: data stored in %s-endian, system is %s-endian.",
             IS_DATA_BIG_ENDIAN ? "big" : "little",
-            IS_SYSTEM_BIG_ENDIAN() ? "big" : "little");
+            IS_SYSTEM_BIG_ENDIAN() ? "big" : "little")
 
         // Invertir el orden de los 4 bytes
         uint8_t temp = buffer[0];
@@ -28,7 +28,7 @@ void adjust_data_endianness(uint8_t *buffer) {
         buffer[1] = buffer[2];
         buffer[2] = temp;
 
-        LOG(DEBUG, "[Endianess] Data endianess adjusted.");
+        LOG(DEBUG, "[Endianess] Data endianess adjusted.")
     } else {
         LOG(DEBUG, "[Endianess] No conversion needed: data and system share endianess.");
     }
