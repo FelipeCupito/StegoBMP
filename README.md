@@ -51,25 +51,6 @@ brew install openssl
 
 Puedes descargar e instalar OpenSSL desde el [sitio oficial de OpenSSL](https://slproweb.com/products/Win32OpenSSL.html). Asegúrate de que las rutas de OpenSSL estén correctamente configuradas en tu entorno.
 
-### Instalación de CMake
-
-#### En Linux (Debian/Ubuntu):
-
-```bash
-sudo apt update
-sudo apt install cmake
-```
-
-#### En macOS con Homebrew:
-
-```bash
-brew install cmake
-```
-
-#### En Windows:
-
-Puedes descargar CMake desde el [sitio oficial de CMake](https://cmake.org/download/) y seguir las instrucciones de instalación.
-
 ## Compilación e Instalación
 
 Primero, asegúrese de contar con OpenSSL y CMake instalados. Para compilar el programa, ejecute:
