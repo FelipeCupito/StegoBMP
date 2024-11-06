@@ -124,6 +124,6 @@ Para extraer un archivo oculto de una imagen BMP, use:
 
 ## Contribuciones
 
- - Cupito, Felipe - 60058
+ - Cupitó, Felipe - 60058
  - Podgorny, Andres - 60570 
  - De Caro, Guido - 61590
